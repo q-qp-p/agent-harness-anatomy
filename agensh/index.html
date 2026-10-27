@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    background: #161210; color: #ece1d3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.7; padding: 48px 24px; margin: 0;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  a { color: #d08c4e; }
+  h1 { font-size: 1.9rem; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 16px; }
+  h2 { font-size: 1.4rem; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid #2c231b; }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; }
+  p, li { margin-bottom: 12px; }
+  blockquote {
+    border-left: 3px solid #d08c4e; padding: 4px 16px; margin: 20px 0;
+    color: #a89880; background: #1f1a15; border-radius: 0 8px 8px 0;
+  }
+  blockquote p { margin-bottom: 6px; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88em; background: #1f1a15; padding: 2px 6px; border-radius: 6px;
+  }
+  pre { background: #1f1a15; border: 1px solid #3a2f26; border-radius: 8px;
+        padding: 16px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  img { max-width: 100%; height: auto; border: 1px solid #3a2f26;
+        border-radius: 12px; margin: 20px 0; background: #1f1a15; }
+  table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 0.92rem;
+          display: block; overflow-x: auto; }
+  th, td { border: 1px solid #3a2f26; padding: 10px 12px; text-align: left;
+           vertical-align: top; }
+  th { background: #1f1a15; }
+  ul, ol { padding-left: 24px; }
+  hr { border: none; border-top: 1px solid #2c231b; margin: 32px 0; }
+  .footnote { font-size: 0.88rem; color: #a89880; }
+  .footnote hr { margin: 40px 0 16px; }
+  sup a { text-decoration: none; }
+  .topnav { max-width: 760px; margin: 0 auto 32px; font-size: 0.9rem; }
+  .topnav a { color: #a89880; text-decoration: none; }
+  .topnav a:hover { color: #ece1d3; }
+  .diagram-cta {
+    display: block; text-align: center; margin: 28px 0; padding: 16px;
+    background: #1f1a15; border: 1px solid #3a2f26; border-radius: 12px;
+    color: #ece1d3; text-decoration: none; font-weight: 600;
+  }
+  .diagram-cta:hover { border-color: #d08c4e; }
+  .diagram-cta span { display: block; font-weight: 400; font-size: 0.88rem;
+                      color: #a89880; margin-top: 4px; }
+  .byline { color: #a89880; font-size: 0.95rem; margin: 4px 0 20px; } .byline a { color: #d08c4e; }
+</style>
+<title>Agent Harness Anatomy #19: Agensh — the orchestrator is a prompt</title>
+<meta name="description" content="Microsoft's decentralized multi-agent harness: no orchestrator in code — the cooperation loop is a prompt, coordination runs over Gitea, Mattermost and a shared context board, on top of Copilot CLI over ACP.">
+<meta name="author" content="David P. S. Marques">
+<meta property="og:title" content="Agent Harness Anatomy #19: Agensh — the orchestrator is a prompt">
+<meta property="og:description" content="Microsoft's decentralized multi-agent harness: no orchestrator in code — the cooperation loop is a prompt, coordination runs over Gitea, Mattermost and a shared context board, on top of Copilot CLI over ACP.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://dpsm.github.io/agent-harness-anatomy/agensh/">
+</head>
+<body>
+<main>
+<nav class="topnav"><a href="../#agensh">&larr; Agent Harness Anatomy</a></nav>
+<h1 id="agent-harness-anatomy-19-agensh-the-orchestrator-is-a-prompt">Agent Harness Anatomy #19: Agensh — the orchestrator is a prompt</h1>
+  <p class="byline">by <a href="https://ca.linkedin.com/in/dpsmarques">David P. S. Marques</a></p>
+<blockquote>
+<p><strong>Series:</strong> Agent Harness Anatomy — top-down dissections of real agent harnesses, grounded in verifiable source code. Every behavioral claim below carries a footnote to a pinned GitHub permalink; the full evidence lives in the endnotes.</p>
+</blockquote>
+<h2 id="version-block">Version block</h2>
+<ul>
+<li><strong>Repo:</strong> <a href="https://github.com/microsoft/Agensh">microsoft/Agensh</a></li>
+<li><strong>Pinned:</strong> tag <code>v1.0</code>, commit <code>0468a3e6a58b51dc2b84871fcaa0df22b0d1033e</code> (2026-10-23) — the repository's only tag and only commit at the pin; the code was open-sourced on 2026-10-24. It is the release accompanying a research report (Zhan et al., "Agensh: Scaling Organizational Intelligence to 1,024 Agents", arXiv:2609.26781).</li>
+<li><strong>Language:</strong> a polyglot operations stack rather than a single package — TypeScript (the per-worker router, ≈2,200 lines), Python (the board service, the ACP bridge, the launch and scoring scripts, ≈4,600 lines), Bash (provisioning and the experiment runner), plus Docker Compose generation. The cooperation logic itself is an 85-line prompt file.</li>
+<li><strong>License:</strong> MIT</li>
+<li><strong>Claim under test:</strong> a decentralized, self-organized multi-agent harness with <em>no central orchestrator</em>: workers discover and claim sub-tasks, share findings, verify results and merge progress asynchronously, coordinating through a shared workspace, a messaging interface and a shared context board, on top of a borrowed single-agent harness.</li>
+</ul>
+<p>Two framing notes before the dissection. First, this teardown was read-only: the source was cloned and read, never built or executed, so every claim is about what the code at this commit does. Second, Agensh inverts the shape of every previous entry in this series. Those harnesses put the agent loop in code and the instructions in prompts. Agensh puts the <em>multi-agent</em> loop in a prompt and keeps only transport, shared state and supervision in code. The repository says this about itself, in the prompt directory's README: "Cooperation is defined by these prompts; the router transports service events and context between native Copilot turns."<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> The single-agent loop — the turns themselves — is not Agensh's at all: it is GitHub Copilot CLI, pinned, driven over ACP (the Agent Client Protocol). What Agensh contributes is everything <em>between</em> the workers: how a task reaches them, how they divide it without being assigned anything, how a finding in one worker's turn becomes an interruption in another's, and how merged code accumulates into a result.</p>
+<p><img alt="Agensh architecture" src="figures/agensh.svg" /></p>
+<p><a class="diagram-cta" href="../diagrams/template.html?data=../agensh/diagrams/agensh.json">Explore the interactive architecture diagram<span>10 nodes, 10 edges — pan, zoom, and follow every source link</span></a></p>
+<h2 id="the-mental-model">The mental model</h2>
+<p>Hold three layers apart, because the code keeps them apart.</p>
+<p><strong>The cooperation loop is text.</strong> <code>prompts/agents.txt</code> is rendered into each worker's <code>AGENTS.md</code>. It names the three shared services, states the team norm ("all equal. You claim what to build, you build it, you merge it, and you choose the next thing"), and defines a six-step work cycle: observe the reference, announce a <code>CLAIM</code>, build, verify against the reference, push and merge, publish a <code>PATCH_SUMMARY</code>, repeat.<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> No scheduler, planner, task queue or leader exists anywhere in the codebase. Decomposition is emergent: the runner opens one task issue with no assignee, and each worker opens its own issues for the areas it takes.<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup></p>
+<p><strong>The substrate is three ordinary team tools, self-hosted.</strong> A Gitea instance is the shared workspace (one repository; pull requests carry the work; <code>main</code> is the integration point). A Mattermost instance is the messaging interface (one task channel plus direct messages). A small FastAPI service — the <em>shared context board</em>, its design adapted from DeLM — is the team's shared memory: an append-only log of short, typed, verified-wording notes. All three run as services in a generated Docker Compose stack, alongside MySQL, an nginx edge, a bootstrap and a secret service.<sup id="fnref:4"><a class="footnote-ref" href="#fn:4">4</a></sup></p>
+<p><strong>Each worker is a pair of containers.</strong> One runs the agent: a supervisor (<code>entrypoint.sh</code> + <code>acp-bridge.py</code>) around a stock Copilot CLI session speaking ACP. The other is the <em>mini-router</em>, a TypeScript sidecar that listens to Gitea and Mattermost, queues what happens in a MySQL event store, and turns that activity into ACP prompts — one at a time, with the current board contents prepended. The team's size is a generator parameter: the Compose generator emits one worker/router pair per agent against the shared services.<sup id="fnref:5"><a class="footnote-ref" href="#fn:5">5</a></sup> The defaults in the reproduction guide are 8 workers, six hours per task, one fixed model at high reasoning effort.<sup id="fnref:6"><a class="footnote-ref" href="#fn:6">6</a></sup></p>
+<p>The scaling results reported by the authors — teams up to 1,024 agents, and the pass-rate improvements quoted in the README — are vendor-reported results from the paper's environment. They are flagged as unverified wherever they appear below; the released artifact is the <em>single-node</em> team setup plus a standalone single-agent baseline, and the reproduction guide itself documents ways in which a release run differs from the historical experiment.<sup id="fnref:7"><a class="footnote-ref" href="#fn:7">7</a></sup></p>
+<h2 id="component-map">Component map</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Lines</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prompts/agents.txt</code> + briefs</td>
+<td>85 +</td>
+<td>The cooperation loop: identity, substrates, board discipline, event semantics, the six-step work cycle</td>
+</tr>
+<tr>
+<td><code>mini-router/src/</code> (TypeScript)</td>
+<td>≈2,200</td>
+<td>Per-worker event plane: Gitea/Mattermost listeners, MySQL event store, serialized ACP dispatcher, board client</td>
+</tr>
+<tr>
+<td><code>mini-router/mcp-notice-shim.cjs</code></td>
+<td>154</td>
+<td>Wraps every infrastructure MCP server; appends leased DMs and board gists to <code>tools/call</code> results, mid-turn</td>
+</tr>
+<tr>
+<td><code>board-service/</code> (Python/FastAPI)</td>
+<td>≈1,750</td>
+<td>The shared context board: typed gists, deterministic verifier, claims with expiry, snapshots, boolean grep, unfold</td>
+</tr>
+<tr>
+<td><code>agent/</code> (Bash + Python)</td>
+<td>≈560</td>
+<td>Worker provisioning (<code>entrypoint.sh</code>) and the ACP bridge supervising the Copilot child</td>
+</tr>
+<tr>
+<td><code>agent/config/</code></td>
+<td>—</td>
+<td>The MCP server template (gitea / mattermost / board) and the 60-entry MCP tool deny list</td>
+</tr>
+<tr>
+<td><code>scripts/pbench_run.sh</code> + launchers</td>
+<td>692 +</td>
+<td>The experiment runner: seeding, the unassigned task issue, staggered wake-up, deadline posts, the idle watchdog</td>
+</tr>
+<tr>
+<td><code>tools/gen-compose-prod.py</code></td>
+<td>387</td>
+<td>Generates the team stack: shared services plus one worker/router pair per agent</td>
+</tr>
+<tr>
+<td><code>secret-service/</code> (Python)</td>
+<td>98</td>
+<td>Serves bootstrap-issued per-worker tokens to routers, behind an internal-auth header</td>
+</tr>
+<tr>
+<td><code>scripts/acp_driver.py</code></td>
+<td>466</td>
+<td>The standalone single-agent baseline driver: the same ACP session shape, no team</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-core-loop">The core loop</h2>
+<p>The loop that coordinates the team is worth quoting in structure, because there is so little machinery underneath it. The prompt's work cycle, verbatim in outline:<sup id="fnref2:2"><a class="footnote-ref" href="#fn:2">2</a></sup></p>
+<ol>
+<li>Run the reference program to observe the unexplored areas to build.</li>
+<li>Announce the area being taken as a <code>CLAIM</code> on the shared context board.</li>
+<li>Implement against current <code>main</code> (under a memory limit the prompt specifies).</li>
+<li>Check the work by running the reference and the build on the same inputs and comparing.</li>
+<li>Push, open a PR, and merge to <code>main</code>; if the merge is refused, merge the latest <code>main</code> into the branch, re-check, and push again.</li>
+<li>Publish a <code>PATCH_SUMMARY</code> (<code>files= | idea= | evidence=</code>), then go back to 1.</li>
+</ol>
+<p>Three properties of this loop are easy to miss. First, <strong>claiming is the only coordination primitive, and it is soft.</strong> A <code>CLAIM</code> is a board gist, not a lock: claims expire after one hour, and the prompt treats a collision as a social event — "a collision; settle it by direct message" — because a DM is the one channel that reaches a peer inside their current turn.<sup id="fnref:8"><a class="footnote-ref" href="#fn:8">8</a></sup><sup id="fnref:9"><a class="footnote-ref" href="#fn:9">9</a></sup> Second, <strong>the loop has no completion condition of its own.</strong> It repeats until the wall-clock budget ends; the runner's deadline posts at T-45 and T-5 minutes are what bend the team's behavior from building toward landing.<sup id="fnref:10"><a class="footnote-ref" href="#fn:10">10</a></sup> Third, <strong>nothing in the loop is enforced by code.</strong> A worker that never posts a CLAIM still receives events, still merges. The code-side pressure is deliberately thin: after any turn in which a worker published no board entry, the dispatcher sends one extra prompt — a "forced-write nudge" — asking it to publish what it established, or to refresh its CLAIM.<sup id="fnref:11"><a class="footnote-ref" href="#fn:11">11</a></sup></p>
+<p><strong>Self-selection starts at the top.</strong> The runner opens the task as Gitea issue #1 with, in its own log line, "no assignee; peers self-select", and the task brief tells the team there is no one to ask: "This is FULLY autonomous: there is NO human to ask. Define requirements, split the work, decide, and ship by yourselves."<sup id="fnref2:3"><a class="footnote-ref" href="#fn:3">3</a></sup><sup id="fnref:12"><a class="footnote-ref" href="#fn:12">12</a></sup> Who works on what is decided by whoever posts the first CLAIM for an area and holds it — a convention carried entirely by the prompt text and the board's expiry rule.</p>
+<p><img alt="The self-claim cycle" src="figures/seq-claim.svg" /></p>
+<h2 id="one-task-end-to-end">One task, end to end</h2>
+<p>A concrete pass: a ProgramBench task (rebuild a reference program from observation; the released configuration's default shape — 8 workers, six hours), from launch to cutoff.</p>
+<ol>
+<li><strong>Provisioning.</strong> The profile generator renders the Compose stack; bootstrap creates the Gitea organization, the worker accounts, the Mattermost team and channel, and the board membership; the secret service holds each worker's tokens. Each worker container renders its <code>AGENTS.md</code> from <code>agents.txt</code> — name, team size and brief substituted — writes its git credentials and MCP config, probes that its home directory can host Copilot's SQLite session store, and starts the ACP bridge.<sup id="fnref:13"><a class="footnote-ref" href="#fn:13">13</a></sup><sup id="fnref2:14"><a class="footnote-ref" href="#fn:14">14</a></sup></li>
+<li><strong>Seeding and the task issue.</strong> The runner pushes the task's cleanroom workspace as the seed commit, then opens issue #1 containing the task brief — no assignee.<sup id="fnref3:3"><a class="footnote-ref" href="#fn:3">3</a></sup></li>
+<li><strong>Staggered wake-up.</strong> The runner starts worker/router pairs and sends each worker a kickoff DM: 30 seconds apart for the first 120 workers, then 3 seconds apart, with a settle wait per container. The ramp is charged against the same six-hour budget, a cost the reproduction guide states plainly.<sup id="fnref:15"><a class="footnote-ref" href="#fn:15">15</a></sup></li>
+<li><strong>The first turn.</strong> A worker's router has ingested the DM as an event. The dispatcher claims the pending batch, fetches the board snapshot, and sends one ACP prompt: the <code>==== SHARED CONTEXT ====</code> block first, then the <code>[event]</code> summary. The worker reads issue #1, runs the reference binary, and posts its first <code>CLAIM</code>.<sup id="fnref2:16"><a class="footnote-ref" href="#fn:16">16</a></sup><sup id="fnref:17"><a class="footnote-ref" href="#fn:17">17</a></sup></li>
+<li><strong>Division of labor emerges.</strong> Peers wake into a board that already has claims on it; the prompt tells them to pick a different angle. Workers open their own Gitea issues for their areas, implement in parallel without syncing ("You do not need to sync code with others during implementation"), and publish <code>FACT</code> / <code>OBSERVED</code> / <code>FAIL</code> gists as they establish things.<sup id="fnref4:2"><a class="footnote-ref" href="#fn:2">2</a></sup><sup id="fnref3:18"><a class="footnote-ref" href="#fn:18">18</a></sup></li>
+<li><strong>Mid-turn correction.</strong> A worker falsifies a hypothesis and posts a <code>FAIL</code>. Every peer whose shim next returns a tool result sees that <code>FAIL</code> appended to it, inside the turn they are already in; the prompt's rule is "stop if you are doing that thing." A peer about to edit the same files gets a DM instead — the collision channel.<sup id="fnref2:9"><a class="footnote-ref" href="#fn:9">9</a></sup><sup id="fnref2:19"><a class="footnote-ref" href="#fn:19">19</a></sup></li>
+<li><strong>Merge and publish.</strong> A worker finishes an area: syncs <code>main</code>, pushes, opens a PR, merges it (no approval is required), and posts the <code>PATCH_SUMMARY</code>. The merge event fans out through every other worker's router and arrives as queued <code>[event]</code> summaries at their next turn boundaries.<sup id="fnref:20"><a class="footnote-ref" href="#fn:20">20</a></sup><sup id="fnref2:21"><a class="footnote-ref" href="#fn:21">21</a></sup></li>
+<li><strong>The closing hours.</strong> At T-45 minutes the runner posts to the channel: stop new features, land the open PRs — "work that is not merged does not count." At T-5: merge anything ready and confirm the build. At the cutoff the runner exports committed <code>main</code> HEAD — the artifact that gets scored, built fresh from a clone, root <code>compile.sh</code> and all.<sup id="fnref2:10"><a class="footnote-ref" href="#fn:10">10</a></sup><sup id="fnref:22"><a class="footnote-ref" href="#fn:22">22</a></sup></li>
+</ol>
+<p><img alt="Wake-up: from a kickoff DM to a serialized ACP turn" src="figures/seq-wake.svg" /></p>
+<p><a class="diagram-cta" href="trace.html">Play the 8-step trace<span>follow one ProgramBench task — seed, claim, a mid-turn correction, self-merge — through Agensh's runner, routers, board and bridge, step by step</span></a></p>
+
+<h2 id="the-event-plane-one-router-per-worker">The event plane: one router per worker</h2>
+<p>The mini-router is where Agensh's code concentrates, and its own header states the division of labor: "The router delivers activity; the agent prompt defines how agents cooperate."<sup id="fnref:23"><a class="footnote-ref" href="#fn:23">23</a></sup> Two listeners normalize service activity into unified events — Gitea over SSE (with polling), Mattermost over a WebSocket — and ingest them into a MySQL event store. The same Gitea push therefore lands once <em>per worker</em>, deduplicated per agent by a <code>(dedup_key, agent)</code> unique key; each worker has its own queue, its own cursors, and its own delivery state.<sup id="fnref:24"><a class="footnote-ref" href="#fn:24">24</a></sup><sup id="fnref:25"><a class="footnote-ref" href="#fn:25">25</a></sup></p>
+<p><strong>Turns are serialized and acknowledged late.</strong> The dispatcher claims batches of up to 32 pending events, marks them <code>sending</code>, and issues exactly one ACP prompt at a time for its worker. Before the prompt it renders the board snapshot as a prefix; the ACP channel attaches that prefix to this prompt only and clears it afterwards, so shared context cannot leak from one turn into the next.<sup id="fnref:16"><a class="footnote-ref" href="#fn:16">16</a></sup><sup id="fnref:26"><a class="footnote-ref" href="#fn:26">26</a></sup> The batch is marked sent only <em>after</em> the turn completes; a failed prompt puts its events into a retry state with backoff, a sweeper re-dispatches them, and a router restart recovers any rows left in <code>sending</code> back to pending.<sup id="fnref:27"><a class="footnote-ref" href="#fn:27">27</a></sup> The session itself survives the router: the Copilot session id is persisted in the store and reloaded on reconnect.<sup id="fnref:28"><a class="footnote-ref" href="#fn:28">28</a></sup></p>
+<p><strong>Two delivery speeds.</strong> Queued events arrive at turn boundaries, rendered as compact <code>[event]</code> blocks (id, source, kind, age, summary — "It reports facts; deciding what to do about them is yours").<sup id="fnref:18"><a class="footnote-ref" href="#fn:18">18</a></sup> Urgent items travel faster, through a different mechanism entirely: every infrastructure MCP server the worker talks to is launched through the <em>notice shim</em>, a small Node wrapper. Each time a <code>tools/call</code> result passes back through the shim, the shim leases new direct-message posts and unread peer gists from the board service, appends them to the result's text, and only then acknowledges them as shown.<sup id="fnref:19"><a class="footnote-ref" href="#fn:19">19</a></sup><sup id="fnref:29"><a class="footnote-ref" href="#fn:29">29</a></sup> The dispatcher later retires the corresponding queue rows (<code>claimShown</code>), so a notice delivered mid-turn is not delivered twice.<sup id="fnref:30"><a class="footnote-ref" href="#fn:30">30</a></sup> Group-channel traffic is deliberately <em>not</em> urgent: it waits for a turn boundary, and backlogs beyond 32 messages are spilled to JSONL files with the newest 32 kept inline.<sup id="fnref:31"><a class="footnote-ref" href="#fn:31">31</a></sup></p>
+<p><img alt="Mid-turn delivery: the MCP notice shim" src="figures/seq-midturn.svg" /></p>
+<h2 id="the-shared-context-board">The shared context board</h2>
+<p>The board is the team's only shared memory, and it is engineered to stay short. A gist is one of five types — <code>FACT</code>, <code>OBSERVED</code>, <code>FAIL</code>, <code>CLAIM</code>, <code>PATCH_SUMMARY</code> — with content capped at 100 characters (300 for a patch summary); anything longer goes into an uncapped <code>detail</code> field behind the gist's <code>G&lt;n&gt;</code> label, retrievable with <code>board_unfold</code>.<sup id="fnref:32"><a class="footnote-ref" href="#fn:32">32</a></sup> The prompt assigns the types their semantics, including the value ordering: a <code>FAIL</code> — "a hypothesis you falsified (the highest-value entry: it stops peers spending budget on it)".<sup id="fnref2:18"><a class="footnote-ref" href="#fn:18">18</a></sup></p>
+<p>The service behind it (FastAPI over MySQL) maintains two views. The <em>live view</em> holds at most the newest 2,000 entries and applies the board's editorial rules; MySQL retains everything, and <code>board_grep</code> searches the full history with a small boolean grammar (<code>,</code> is OR, <code>&amp;</code> is AND, parentheses allowed), returning at most 500 matches plus the total count.<sup id="fnref2:32"><a class="footnote-ref" href="#fn:32">32</a></sup><sup id="fnref:33"><a class="footnote-ref" href="#fn:33">33</a></sup> The editorial rules are the interesting part:</p>
+<ul>
+<li><strong>Claims expire.</strong> A <code>CLAIM</code> carries a TTL (one hour by default) and drops out of live reads and turn-start snapshots when it lapses — a stale claim stops reserving its area.<sup id="fnref2:8"><a class="footnote-ref" href="#fn:8">8</a></sup></li>
+<li><strong>Patch summaries supersede.</strong> A new <code>PATCH_SUMMARY</code> from an author with the same work label replaces their earlier one in the live view, preserving the original timestamp.<sup id="fnref:34"><a class="footnote-ref" href="#fn:34">34</a></sup></li>
+<li><strong>Failure invalidates.</strong> A <code>FAIL</code> from an author invalidates that author's latest matching patch summary in the live view, marking it with the failing content.<sup id="fnref2:34"><a class="footnote-ref" href="#fn:34">34</a></sup></li>
+<li><strong>"Verified" is a wording check.</strong> A patch summary counts as a verified checkpoint only if its <code>evidence=</code> field uses solid-evidence wording and avoids weak-evidence words; separately, the write path rejects patch summaries whose evidence is placeholder text ("tbd", "pending", "unverified", "should work", …). The service README is explicit about the limit: it "checks text deterministically, without running the verification commands an agent reports."<sup id="fnref:35"><a class="footnote-ref" href="#fn:35">35</a></sup><sup id="fnref:36"><a class="footnote-ref" href="#fn:36">36</a></sup></li>
+</ul>
+<p>Delivery mirrors the event plane's two speeds: <code>GET /snapshot</code> returns a viewer's unread gists across its boards and advances its cursors (the dispatcher's turn-start prefix), while <code>GET /pending/{agent}</code> leases urgent notices to the shim and <code>POST /shown/{agent}</code> records what was actually emitted.<sup id="fnref:37"><a class="footnote-ref" href="#fn:37">37</a></sup></p>
+<p><img alt="Anatomy of a board entry" src="figures/seq-board.svg" /></p>
+<h2 id="the-adapter-layer-a-borrowed-loop-over-acp">The adapter layer: a borrowed loop, over ACP</h2>
+<p>Agensh's worker is a stock single-agent harness with its surroundings replaced. The entrypoint is explicit that this release supports exactly one kind — <code>AGENT_KIND=copilot</code>, anything else is a fatal startup error — and Copilot itself is pinned (1.0.70 in this release).<sup id="fnref:14"><a class="footnote-ref" href="#fn:14">14</a></sup><sup id="fnref:38"><a class="footnote-ref" href="#fn:38">38</a></sup> What the entrypoint builds around it:</p>
+<ul>
+<li><strong>Instructions:</strong> <code>agents.txt</code> is rendered with the worker's name, team size and the task brief into <code>/work/AGENTS.md</code> (and copied to <code>CLAUDE.md</code>).<sup id="fnref2:13"><a class="footnote-ref" href="#fn:13">13</a></sup></li>
+<li><strong>Tools:</strong> <code>.mcp.json</code> is rendered from a template defining three stdio MCP servers — <code>gitea</code>, <code>mattermost</code>, <code>board</code> — every one launched through the notice shim; the board server is removed from the config if no board URL is configured.<sup id="fnref:39"><a class="footnote-ref" href="#fn:39">39</a></sup></li>
+<li><strong>Launch posture:</strong> Copilot runs with <code>--acp --stdio</code>, <code>--no-ask-user</code>, <code>--no-remote</code>, <code>--disable-builtin-mcps</code>, and the two exclusions that keep the team the only multi-agent mechanism: <code>--excluded-tools=task --excluded-tools=list_agents</code> — a worker may not spawn subagents of its own.<sup id="fnref:40"><a class="footnote-ref" href="#fn:40">40</a></sup></li>
+<li><strong>Environment:</strong> provider settings are translated from the launcher's names into Copilot's OpenAI-provider configuration, offline mode is forced, and GitHub tokens are unset so the only credentials in play are the per-worker Gitea/Mattermost ones the entrypoint installed.<sup id="fnref:41"><a class="footnote-ref" href="#fn:41">41</a></sup></li>
+</ul>
+<p>The bridge between router and session is deliberately small: <code>acp-bridge.py</code> serves one Unix-socket ACP connection at a time and spawns the Copilot child as UID/GID 10000 — it refuses to run the child as root.<sup id="fnref:42"><a class="footnote-ref" href="#fn:42">42</a></sup> A replacement connection waits for the previous child's cleanup. On disconnect, the bridge first asks Copilot to cancel natively (<code>session/cancel</code>) and waits for the cancellation to settle before tearing down the process group — tools get a chance to stop cleanly rather than being killed mid-write.<sup id="fnref:43"><a class="footnote-ref" href="#fn:43">43</a></sup> On shutdown it seals the worker's HOME and workspace — including <code>.git</code> and ignored files — into an archive whose manifest only becomes complete once the size and checksum are recorded, and the launcher checks those manifests before cleaning up.<sup id="fnref:44"><a class="footnote-ref" href="#fn:44">44</a></sup></p>
+<p>The seam is genuinely narrow — ACP for turns, a rendered <code>AGENTS.md</code> for instructions, an MCP config for tools — but only the Copilot implementation of it ships. The standalone baseline uses the same seam from the other side: <code>scripts/acp_driver.py</code> drives one Copilot session directly (resume-while-time-remains, silence recovery), which is what makes the 1-agent condition comparable to a team run.<sup id="fnref:45"><a class="footnote-ref" href="#fn:45">45</a></sup></p>
+<h2 id="tools-approvals-and-containment">Tools, approvals and containment</h2>
+<p><strong>Tools.</strong> Beyond the three MCP servers, the prompt is permissive: "MCP, git CLI, shell, curl, writing files — whatever is at hand is fine. If the tool you have is not enough, look for one; if there is none, build one."<sup id="fnref3:2"><a class="footnote-ref" href="#fn:2">2</a></sup> The MCP surface is then <em>subtracted</em> from: a 60-entry deny list names Gitea operations (repository, branch, tag and release management, file writes through the API, wiki, actions and milestone administration) and Mattermost operations (channel and bookmark management, file upload, message editing and deletion, pinning). Each entry is applied twice — as a Copilot permission denial and as a model-visible exclusion — so the tools are neither callable nor advertised.<sup id="fnref:46"><a class="footnote-ref" href="#fn:46">46</a></sup> The effect is a routing decision: code reaches <code>main</code> through git and PRs, not through the Gitea file API, and the channel stays a conversation rather than a file store.</p>
+<p><strong>Approvals.</strong> There are none at runtime, by design: <code>--no-ask-user</code>, no human in the loop, and on the Gitea side the bootstrap allows PR merges with <strong>zero required approvals</strong>, restricts direct pushes to <code>main</code>, and disables the CI merge gate.<sup id="fnref:21"><a class="footnote-ref" href="#fn:21">21</a></sup> Self-merge is not an oversight in this design; it is the integration mechanism the prompt's step 5 assumes. The guardrails that exist are the subtractive tool list above, per-worker credentials, and the board's membership checks (a worker can only read and write boards it belongs to; the operator identity is separate).<sup id="fnref2:37"><a class="footnote-ref" href="#fn:37">37</a></sup></p>
+<p><strong>Containment (the benchmark condition).</strong> The released experiments run offline: worker networks restrict external access to model egress, prompts and briefs forbid fetching the original source, and the reference binary is mounted root-owned with mode 0111 — workers can execute it to observe behavior and cannot read its bytes.<sup id="fnref2:38"><a class="footnote-ref" href="#fn:38">38</a></sup><sup id="fnref:47"><a class="footnote-ref" href="#fn:47">47</a></sup> Workers run as UID/GID 10000 with a 64 GiB memory ceiling (routers 8 GiB); tokens reach routers only from the secret service, gated by an internal-auth header, with the token-name path checked against traversal.<sup id="fnref:48"><a class="footnote-ref" href="#fn:48">48</a></sup></p>
+<p><img alt="Merge discipline and the closing hours" src="figures/seq-merge.svg" /></p>
+<h2 id="the-runners-hand-the-only-central-code-that-touches-behavior">The runner's hand: the only central code that touches behavior</h2>
+<p>The runner never assigns work, but it shapes the run in four ways, all worth naming because they are easy to mistake for emergence when reading results:</p>
+<ul>
+<li><strong>Wake-up ramp.</strong> Workers are started and kicked off one at a time (30-second spacing for the first 120, then 3-second spacing, plus a per-container settle wait), and the ramp is charged to the shared wall-clock budget — at large team sizes, later workers necessarily get less working time than earlier ones.<sup id="fnref2:15"><a class="footnote-ref" href="#fn:15">15</a></sup></li>
+<li><strong>Deadline posts.</strong> Channel messages at T-45 and T-5 minutes switch the team's objective from coverage to landing; they are runner code, rendered from prompt files like everything else.<sup id="fnref3:10"><a class="footnote-ref" href="#fn:10">10</a></sup></li>
+<li><strong>The idle watchdog.</strong> Every 60 seconds the runner checks each worker's last activity; a worker idle for 600 seconds receives the <code>idle.txt</code> nudge by DM (with a channel fallback), unless its event queue is non-empty — in which case the queue, not the watchdog, is expected to wake it.<sup id="fnref:49"><a class="footnote-ref" href="#fn:49">49</a></sup></li>
+<li><strong>The forced-write nudge.</strong> Covered above: a turn that produced no board entry earns one extra dispatcher prompt. Publication discipline is the one loop behavior the code actively reinforces.<sup id="fnref2:11"><a class="footnote-ref" href="#fn:11">11</a></sup></li>
+</ul>
+<h2 id="scaling-claims-as-reported-unverified">Scaling claims, as reported (unverified)</h2>
+<p>The README reports the headline experiment: on the five hardest ProgramBench tasks (GPT-5.6-sol, high reasoning effort, six-hour budget, no Internet), the mean final test-pass rate rose from 19.31% with 1 agent to 28.78% with 128 agents, and on Pandoc from 33.89% (1 agent) to 50.94% (128) and 55.06% (1,024); a later model is reported to take Pandoc from 56.19% (1 agent) to 79.59% (32 agents).<sup id="fnref2:7"><a class="footnote-ref" href="#fn:7">7</a></sup> These are the authors' reported results. This teardown did not run the system, and three facts from the release itself bound how the numbers should be read: the released code is the single-node setup; the reproduction guide notes the historical experiment seeded a different cleanroom build ("its binary differs from v6 even when version strings match") and that infrastructure updates mean "a new release run should record its own revision rather than claim exact historical reproduction"; and the wake-up ramp is charged against the same budget the pass rates are measured under.<sup id="fnref:50"><a class="footnote-ref" href="#fn:50">50</a></sup></p>
+<h2 id="extensions">Extensions</h2>
+<ul>
+<li><strong>Team size</strong> is the primary dial: <code>PBENCH_WORKERS_PER_TEAM</code> feeds the Compose generator, which emits one worker/router pair per agent; the reproduction default is 8, the generator's own fallback is 16.<sup id="fnref2:5"><a class="footnote-ref" href="#fn:5">5</a></sup><sup id="fnref2:6"><a class="footnote-ref" href="#fn:6">6</a></sup></li>
+<li><strong>Tasks</strong> are ProgramBench task IDs chosen in the profile generator; the runner takes an ordered list, each task with its own hour budget, and the guide warns the generator, image builder and launcher have different built-in task lists — <code>TASKS</code> must be set explicitly and kept consistent.<sup id="fnref:51"><a class="footnote-ref" href="#fn:51">51</a></sup></li>
+<li><strong>The prompt set is configuration, and measured configuration.</strong> Kickoff, idle and deadline texts and the briefs are files; the guide cautions that changing continuation or idle prompt policy "create[s] a different experimental condition", which is the correct way to treat the loop that runs the team.<sup id="fnref:52"><a class="footnote-ref" href="#fn:52">52</a></sup></li>
+<li><strong>Model and gateway</strong> are environment-configured (default <code>gpt-5.6-sol</code>, high reasoning effort, a 272,000-token prompt window), and the launch scripts verify the recorded model settings before starting.<sup id="fnref3:6"><a class="footnote-ref" href="#fn:6">6</a></sup></li>
+<li><strong>A different single-agent harness</strong> would need an ACP-speaking entrypoint and bridge pair plus the rendered instructions and MCP config; the seam exists, but only the Copilot adapter is implemented in this release.<sup id="fnref3:14"><a class="footnote-ref" href="#fn:14">14</a></sup></li>
+</ul>
+<h2 id="observations">Observations</h2>
+<ul>
+<li><strong>The orchestrator is a prompt, and the repo knows it.</strong> The most load-bearing file in the system is 85 lines of prose. Everything else — listeners, queues, leases, archives — is transport and record-keeping around it. That is a deliberate, documented design position ("Cooperation is defined by these prompts"), and it makes the system's behavior unusually legible: to know how the team coordinates, you read one file.</li>
+<li><strong>Urgency is a routing property, not a prompt property.</strong> The design distinguishes what may interrupt a turn (DMs, new board gists — delivered by appending to a tool result the worker is already waiting on) from what must wait (group messages, service events — batched at turn boundaries). The prompt then assigns meaning to the fast lane: a <code>FAIL</code> means stop, a same-area <code>CLAIM</code> means negotiate. The mechanism and the norm are in different layers, and each is simple.</li>
+<li><strong>The board's editorial rules do quiet load-bearing work.</strong> Expiring claims, superseding patch summaries, and failure-invalidated checkpoints keep a 2,000-entry shared memory from filling with stale reservations and superseded claims of success — the failure modes a naive append-only log would accumulate over a six-hour run.</li>
+<li><strong>Coordination quality is bounded by wording checks.</strong> The board can tell that a patch summary's evidence <em>sounds</em> verified; it cannot tell that the verification happened. The service states this limit itself, but it means the team's shared picture of what is done rests, in the end, on the same kind of prompt-level discipline as everything else here.</li>
+<li><strong>The single-agent baseline is the same harness minus the team.</strong> Because the standalone driver speaks the same ACP seam to the same Copilot configuration, the comparison the paper draws (1 agent vs N) is a comparison of coordination layers, not of agent stacks — a cleaner experimental design than most multi-agent releases offer.</li>
+</ul>
+<h2 id="tradeoffs">Tradeoffs</h2>
+<ul>
+<li><strong>Soft claims can collide, and collisions cost turns.</strong> Two workers can claim the same area before either sees the other's gist; the resolution is a DM conversation, paid for in working turns. The design accepts this as the price of having no arbiter — and the price grows with team size, because the board's live view and the mid-turn lane have finite bandwidth.</li>
+<li><strong>Coordination bandwidth is capped by construction.</strong> Gists are 100 characters, the live board holds 2,000 entries, group backlogs truncate to 32 inline messages, and event batches cap at 32. Each cap is a reasonable defense against context flooding; together they mean a very large team's shared picture is necessarily lossy.</li>
+<li><strong>Prompt-carried discipline has no enforcement gradient.</strong> A worker that ignores the board, skips verification, or merges carelessly breaks no rule the code can detect. The only reinforcements are nudges (forced-write, idle). For a benchmark harness this is a coherent choice; it is also the first thing a production adaptation would have to revisit.</li>
+<li><strong>Self-merge with zero approvals optimizes for landing rate.</strong> Combined with a grader that builds from <code>main</code>, it makes integration continuous and removes review bottlenecks — and removes review. A bad merge is every peer's problem at their next sync, discovered through events, not gates.</li>
+<li><strong>The ramp taxes the largest teams most.</strong> Because startup is staggered and charged to the shared budget, the marginal worker in a very large team starts latest and works least — a real, documented property of the released runner that any reading of the scaling curve should keep in view.</li>
+<li><strong>One adapter, one benchmark family.</strong> The release hard-fails on any agent kind but Copilot, and the shipped prompts and briefs are ProgramBench-shaped (a reference binary, a <code>compile.sh</code> contract). The architecture generalizes further than the artifact does.</li>
+</ul>
+<h2 id="comparison-matrix-row">Comparison matrix row</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Dimension</th>
+<th>Agensh (v1.0)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Agent loop</td>
+<td>Two nested loops: the borrowed single-agent loop (Copilot CLI turns over ACP) inside a prompt-carried cooperation loop — observe -&gt; CLAIM -&gt; build -&gt; verify -&gt; push/PR/self-merge -&gt; PATCH_SUMMARY -&gt; repeat; no scheduler or assignment in code; termination is the wall-clock budget, bent by runner deadline posts (T-45m, T-5m) and an idle watchdog</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tool system</td>
+<td>Copilot's native shell/file tools + git CLI + curl, plus three stdio MCP servers (Gitea, Mattermost, board) all wrapped by the notice shim; a 60-entry MCP deny list (permission denial + model-visible exclusion) fences repo/file/channel administration; Copilot's own subagent tools (<code>task</code>, <code>list_agents</code>) are excluded — the team is the subagent mechanism</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Model providers</td>
+<td>Whatever the borrowed harness serves: this release is Copilot-only (<code>AGENT_KIND=copilot</code> or fatal), Copilot pinned at 1.0.70, provider reached through a gateway (defaults: <code>gpt-5.6-sol</code>, high reasoning effort, 272k prompt window, Responses API); launcher translates its model env names into Copilot's OpenAI-provider config</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Prompt construction</td>
+<td>One rendered file: <code>agents.txt</code> (identity, substrates, board discipline, event semantics, work cycle) + task brief -&gt; <code>/work/AGENTS.md</code>; per turn, the dispatcher prepends a board snapshot (<code>==== SHARED CONTEXT ====</code>) as a single-use ACP prompt prefix; urgent notices are appended to tool results mid-turn by the shim</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Memory/session</td>
+<td>Team memory is the board: typed gists (FACT/OBSERVED/FAIL/CLAIM/PATCH_SUMMARY, 100/300-char caps, detail behind <code>G&lt;n&gt;</code> unfold), 2,000-entry live view over a fully retained MySQL history with boolean grep; claims expire (1h), patch summaries supersede, FAIL invalidates; individual memory is the persisted Copilot session (id stored in MySQL) plus the archived HOME/workspace; nothing carries across tasks</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Reasoning/planning</td>
+<td>No planner: decomposition is emergent self-selection — the task issue is opened unassigned, workers open their own issues and reserve areas with expiring CLAIM gists, collisions are settled by DM; verification is prompt-prescribed (run reference and build on the same inputs, compare) and its board-side "verified" status is a wording check, not an executed test</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Extensibility</td>
+<td>Team size as a Compose-generator parameter (one worker/router pair per agent); tasks as ProgramBench IDs; the whole prompt set (agents/brief/kickoff/idle/deadline) is file configuration treated as part of the measured apparatus; a new single-agent harness would need an ACP entrypoint/bridge pair — only Copilot ships</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Interfaces</td>
+<td>No interactive UI for the team itself: Gitea (repo/PRs/issues), Mattermost (channel + DMs), the board's HTTP/MCP surface, and the runner's CLI/Make lifecycle (<code>make up PROFILE=...</code>); operators watch the same Gitea/Mattermost the agents use; results are exported as committed <code>main</code> HEAD plus sealed per-worker shutdown archives</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Failure handling</td>
+<td>Event delivery is durable: per-agent dedup, batches acknowledged only after the turn completes, failed prompts retry with backoff, stuck <code>sending</code> rows recovered on restart, session reloaded by id; bridge disconnects use native <code>session/cancel</code> with a settle wait before teardown; a turn with no board publication earns a forced-write nudge; shutdown archives are checksum-manifested and checked before cleanup</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Security model</td>
+<td>No runtime approvals (<code>--no-ask-user</code>) and zero-approval self-merge by design; guardrails are subtractive (60-entry MCP deny list) and credential-scoped (per-worker tokens served by an auth-gated secret service, board membership checks, workers as UID/GID 10000, bridge refuses a root child); the benchmark condition adds offline worker networks (model egress only) and an execute-only (mode 0111) reference binary</td>
+</tr>
+</tbody>
+</table>
+<h2 id="endnotes">Endnotes</h2>
+<p>All notes are pinned permalinks into the source tree at <code>0468a3e6a58b51dc2b84871fcaa0df22b0d1033e</code>; quoted text is verbatim from that tree unless marked otherwise.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/README.md#L23-L24"><code>prompts/README.md#L23-L24</code></a> — "Cooperation is defined by these prompts; the router transports service events and context between native Copilot turns."&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L68-L79"><code>prompts/agents.txt#L68-L79</code></a> — "The work cycle. Each step is finished by the person doing it." Steps 1–6, ending: "then go back to 1."&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:2" title="Jump back to footnote 2 in the text">&#8617;</a><a class="footnote-backref" href="#fnref4:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/scripts/pbench_run.sh#L415-L422"><code>scripts/pbench_run.sh#L415-L422</code></a> — <code>log "opening task issue (no assignee; peers self-select)"</code>, then the issue is created through the Gitea API.&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:3" title="Jump back to footnote 3 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:4">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/tools/gen-compose-prod.py#L71-L76"><code>tools/gen-compose-prod.py#L71-L76</code></a>, <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/tools/gen-compose-prod.py#L265-L274"><code>tools/gen-compose-prod.py#L265-L274</code></a>, <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/tools/gen-compose-prod.py#L295-L302"><code>tools/gen-compose-prod.py#L295-L302</code></a> — the generated stack's gitea (1.22.6), mattermost (team-edition 10.6) and board-service definitions.&#160;<a class="footnote-backref" href="#fnref:4" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:5">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/tools/gen-compose-prod.py#L7-L9"><code>tools/gen-compose-prod.py#L7-L9</code></a> — <code>WORKERS_PER_TEAM</code> from the environment; <code>ALL_AGENTS = [worker1..workerN]</code> — "Emit the team Compose base to stdout, expanding one worker/router pair per agent."&#160;<a class="footnote-backref" href="#fnref:5" title="Jump back to footnote 5 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:5" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+<li id="fn:6">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L10-L11"><code>REPRODUCE.md#L10-L11</code></a> — "The defaults are 8 workers, 6 hours per task, <code>gpt-5.6-sol</code>, high reasoning effort, the Responses API and a 272,000-token prompt window."&#160;<a class="footnote-backref" href="#fnref:6" title="Jump back to footnote 6 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:6" title="Jump back to footnote 6 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:6" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+</li>
+<li id="fn:7">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/README.md#L26-L40"><code>README.md#L26-L40</code></a> — the vendor-reported ProgramBench results (1 vs 128 vs 1,024 agents). Reported by the authors; not verified by this teardown.&#160;<a class="footnote-backref" href="#fnref:7" title="Jump back to footnote 7 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:7" title="Jump back to footnote 7 in the text">&#8617;</a></p>
+</li>
+<li id="fn:8">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/shared_lessons.py#L14-L23"><code>board-service/shared_lessons.py#L14-L23</code></a> — <code>VALID_TYPES</code>, <code>MAX_CONTENT_CHARS = 100</code>, <code>MAX_PATCH_SUMMARY_CHARS = 300</code>, <code>MAX_BOARD_ENTRIES = 2000</code>, <code>DEFAULT_CLAIM_TTL_SECONDS = 3600</code>.&#160;<a class="footnote-backref" href="#fnref:8" title="Jump back to footnote 8 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:8" title="Jump back to footnote 8 in the text">&#8617;</a></p>
+</li>
+<li id="fn:9">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L57-L66"><code>prompts/agents.txt#L57-L66</code></a> — mid-turn semantics: "<code>FAIL</code> — stop if you are doing that thing… <code>CLAIM</code> on what you are building — a collision; settle it by direct message."&#160;<a class="footnote-backref" href="#fnref:9" title="Jump back to footnote 9 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:9" title="Jump back to footnote 9 in the text">&#8617;</a></p>
+</li>
+<li id="fn:10">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/scripts/pbench_run.sh#L334-L352"><code>scripts/pbench_run.sh#L334-L352</code></a> — <code>deadline_reminder_loop</code>: channel posts of <code>deadline-45m.txt</code> and <code>deadline-5m.txt</code>, timed against the remaining budget.&#160;<a class="footnote-backref" href="#fnref:10" title="Jump back to footnote 10 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:10" title="Jump back to footnote 10 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:10" title="Jump back to footnote 10 in the text">&#8617;</a></p>
+</li>
+<li id="fn:11">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/dispatcher.ts#L154-L172"><code>mini-router/src/dispatcher.ts#L154-L172</code></a> — after a delivered turn, if the worker's latest own gist did not advance: "sending forced-write nudge" via <code>board.buildForcedWriteNudge()</code>.&#160;<a class="footnote-backref" href="#fnref:11" title="Jump back to footnote 11 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:11" title="Jump back to footnote 11 in the text">&#8617;</a></p>
+</li>
+<li id="fn:12">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/task-brief.txt#L12-L13"><code>prompts/task-brief.txt#L12-L13</code></a> — "This is FULLY autonomous: there is NO human to ask. Define requirements, split the work, decide, and ship by yourselves."&#160;<a class="footnote-backref" href="#fnref:12" title="Jump back to footnote 12 in the text">&#8617;</a></p>
+</li>
+<li id="fn:13">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L122-L126"><code>agent/entrypoint.sh#L122-L126</code></a> — <code>envsubst &lt; agents.md &gt; /work/AGENTS.md</code>, copied to <code>CLAUDE.md</code>; the MCP template is rendered alongside.&#160;<a class="footnote-backref" href="#fnref:13" title="Jump back to footnote 13 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:13" title="Jump back to footnote 13 in the text">&#8617;</a></p>
+</li>
+<li id="fn:14">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L14"><code>agent/entrypoint.sh#L14</code></a> — "this release supports AGENT_KIND=copilot only" (fatal otherwise); <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L428-L429"><code>REPRODUCE.md#L428-L429</code></a> — "This release pins Copilot 1.0.70 and Mattermost MCP 0.5.1."&#160;<a class="footnote-backref" href="#fnref:14" title="Jump back to footnote 14 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:14" title="Jump back to footnote 14 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:14" title="Jump back to footnote 14 in the text">&#8617;</a></p>
+</li>
+<li id="fn:15">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L398-L405"><code>REPRODUCE.md#L398-L405</code></a> — "The team budget includes staggered startup. The default ramp targets 30 seconds per worker for the first 120 workers, then 3 seconds… The ramp can overrun the budget"; the stagger switch itself is <code>wake_stagger_for</code> in <code>scripts/pbench_run.sh#L354-L365</code>.&#160;<a class="footnote-backref" href="#fnref:15" title="Jump back to footnote 15 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:15" title="Jump back to footnote 15 in the text">&#8617;</a></p>
+</li>
+<li id="fn:16">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/board_client.ts#L26-L40"><code>mini-router/src/board_client.ts#L26-L40</code></a> — <code>renderForPrompt</code>: the snapshot rendered under the header <code>==== SHARED CONTEXT ====</code>.&#160;<a class="footnote-backref" href="#fnref:16" title="Jump back to footnote 16 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:16" title="Jump back to footnote 16 in the text">&#8617;</a></p>
+</li>
+<li id="fn:17">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/dispatcher.ts#L2-L4"><code>mini-router/src/dispatcher.ts#L2-L4</code></a> — "Serialize queued events into worker turns, adding fresh board context first. Delivery is acknowledged after a completed turn; failed prompts enter retry."&#160;<a class="footnote-backref" href="#fnref:17" title="Jump back to footnote 17 in the text">&#8617;</a></p>
+</li>
+<li id="fn:18">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L21-L33"><code>prompts/agents.txt#L21-L33</code></a> — the board paragraph: publish "the moment you establish something"; <code>FAIL</code> as "the highest-value entry"; "Do not re-derive a peer's <code>FACT</code>, and do not retry something recorded as <code>FAIL</code>"; the <code>board_grep</code> boolean grammar.&#160;<a class="footnote-backref" href="#fnref:18" title="Jump back to footnote 18 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:18" title="Jump back to footnote 18 in the text">&#8617;</a><a class="footnote-backref" href="#fnref3:18" title="Jump back to footnote 18 in the text">&#8617;</a></p>
+</li>
+<li id="fn:19">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/mcp-notice-shim.cjs#L3-L5"><code>mini-router/mcp-notice-shim.cjs#L3-L5</code></a> — "Wrap an infrastructure MCP server and append DMs and fresh board gists to tools/call results. Leases coordinate concurrent wrappers for one worker."&#160;<a class="footnote-backref" href="#fnref:19" title="Jump back to footnote 19 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:19" title="Jump back to footnote 19 in the text">&#8617;</a></p>
+</li>
+<li id="fn:20">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L35-L40"><code>prompts/agents.txt#L35-L40</code></a> — "all equal. You claim what to build, you build it, you merge it, and you choose the next thing… sync your codebase with the latest <code>main</code> branch before merging."&#160;<a class="footnote-backref" href="#fnref:20" title="Jump back to footnote 20 in the text">&#8617;</a></p>
+</li>
+<li id="fn:21">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L422-L424"><code>REPRODUCE.md#L422-L424</code></a> — "Bootstrap allows PR merges with zero required approvals while restricting direct pushes to main; the CI merge gate is disabled."&#160;<a class="footnote-backref" href="#fnref:21" title="Jump back to footnote 21 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:21" title="Jump back to footnote 21 in the text">&#8617;</a></p>
+</li>
+<li id="fn:22">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/pbench-brief.txt#L20-L25"><code>prompts/pbench-brief.txt#L20-L25</code></a> — the hard delivery constraint: the evaluator unpacks the repo, deletes any committed <code>./executable</code>, runs root <code>compile.sh</code> and tests the produced binary; "No root-directory compile.sh = 0 points."&#160;<a class="footnote-backref" href="#fnref:22" title="Jump back to footnote 22 in the text">&#8617;</a></p>
+</li>
+<li id="fn:23">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/main.ts#L2-L3"><code>mini-router/src/main.ts#L2-L3</code></a> — "Wire one worker's durable event queue, service listeners and ACP dispatcher. The router delivers activity; the agent prompt defines how agents cooperate."&#160;<a class="footnote-backref" href="#fnref:23" title="Jump back to footnote 23 in the text">&#8617;</a></p>
+</li>
+<li id="fn:24">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/state.ts#L54-L56"><code>mini-router/src/state.ts#L54-L56</code></a> — the event table's <code>UNIQUE KEY uk_dedup_agent (dedup_key, agent)</code> and the retry index.&#160;<a class="footnote-backref" href="#fnref:24" title="Jump back to footnote 24 in the text">&#8617;</a></p>
+</li>
+<li id="fn:25">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/listeners/gitea/listener.ts#L29"><code>mini-router/src/listeners/gitea/listener.ts#L29</code></a>, <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/listeners/mattermost/listener.ts#L19"><code>mini-router/src/listeners/mattermost/listener.ts#L19</code></a> — the two listener classes the router wires up in <code>main.ts</code>.&#160;<a class="footnote-backref" href="#fnref:25" title="Jump back to footnote 25 in the text">&#8617;</a></p>
+</li>
+<li id="fn:26">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/acp_socket_channel.ts#L51-L55"><code>mini-router/src/acp_socket_channel.ts#L51-L55</code></a> — "Shared context belongs to this prompt and must not leak into the next turn": the prefix is prepended once and cleared.&#160;<a class="footnote-backref" href="#fnref:26" title="Jump back to footnote 26 in the text">&#8617;</a></p>
+</li>
+<li id="fn:27">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/main.ts#L94-L95"><code>mini-router/src/main.ts#L94-L95</code></a> — "A router restart may interrupt a turn before its delivery is acknowledged": interrupted <code>sending</code> rows are recovered to pending; the retry sweeper loop is at <code>main.ts#L226-L251</code>.&#160;<a class="footnote-backref" href="#fnref:27" title="Jump back to footnote 27 in the text">&#8617;</a></p>
+</li>
+<li id="fn:28">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/acp_socket_channel.ts#L15-L20"><code>mini-router/src/acp_socket_channel.ts#L15-L20</code></a> — the channel's <code>sessionStore</code> seam; <code>main.ts</code> binds it to the store key <code>acp_session_id:copilot</code>.&#160;<a class="footnote-backref" href="#fnref:28" title="Jump back to footnote 28 in the text">&#8617;</a></p>
+</li>
+<li id="fn:29">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/mcp-notice-shim.cjs#L138-L154"><code>mini-router/mcp-notice-shim.cjs#L138-L154</code></a> — on a <code>tools/call</code> response: fetch pending notices, append them to the result text, emit, and "Acknowledge only after emitting the augmented result; failures can redeliver."&#160;<a class="footnote-backref" href="#fnref:29" title="Jump back to footnote 29 in the text">&#8617;</a></p>
+</li>
+<li id="fn:30">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/dispatcher.ts#L52-L68"><code>mini-router/src/dispatcher.ts#L52-L68</code></a> — batches of 32 from <code>nextPendingBatch</code>; "Retire DMs already appended to an MCP result by the mid-turn notice shim" via <code>claimShown</code>.&#160;<a class="footnote-backref" href="#fnref:30" title="Jump back to footnote 30 in the text">&#8617;</a></p>
+</li>
+<li id="fn:31">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/README.md#L25-L27"><code>mini-router/README.md#L25-L27</code></a> — "Group messages wait for a turn boundary. Backlogs larger than 32 messages are saved as complete JSONL files… with the newest 32 kept inline."&#160;<a class="footnote-backref" href="#fnref:31" title="Jump back to footnote 31 in the text">&#8617;</a></p>
+</li>
+<li id="fn:32">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/mcp.cjs#L94-L116"><code>board-service/mcp.cjs#L94-L116</code></a> — the <code>board_write</code> tool definition as the agent sees it: types, caps, the PATCH_SUMMARY format, and <code>detail</code> stored behind the gist for <code>board_unfold</code>.&#160;<a class="footnote-backref" href="#fnref:32" title="Jump back to footnote 32 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:32" title="Jump back to footnote 32 in the text">&#8617;</a></p>
+</li>
+<li id="fn:33">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/main.py#L536-L545"><code>board-service/main.py#L536-L545</code></a> — <code>GET /board/{board_id}/grep</code> over persisted history; the default/max window (500) and grammar are set at <code>main.py#L38-L40</code>.&#160;<a class="footnote-backref" href="#fnref:33" title="Jump back to footnote 33 in the text">&#8617;</a></p>
+</li>
+<li id="fn:34">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/shared_lessons.py#L110-L145"><code>board-service/shared_lessons.py#L110-L145</code></a> — in <code>_admit</code>: "A local counterexample invalidates that author's latest matching patch", and a same-label PATCH_SUMMARY replaces the recent candidate "while preserving its initial timestamp."&#160;<a class="footnote-backref" href="#fnref:34" title="Jump back to footnote 34 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:34" title="Jump back to footnote 34 in the text">&#8617;</a></p>
+</li>
+<li id="fn:35">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/verifier.py#L1-L3"><code>board-service/verifier.py#L1-L3</code></a> — "Normalize and cap board gists, rejecting patch summaries with placeholder evidence. Verification is a deterministic text check; it does not execute the claimed tests"; the check itself is <code>verify_note</code> at <code>verifier.py#L46-L56</code>.&#160;<a class="footnote-backref" href="#fnref:35" title="Jump back to footnote 35 in the text">&#8617;</a></p>
+</li>
+<li id="fn:36">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/README.md#L6-L9"><code>board-service/README.md#L6-L9</code></a> — "Every admitted gist is appended to MySQL; a recent in-memory view supports prompt delivery. The service checks text deterministically, without running the verification commands an agent reports."&#160;<a class="footnote-backref" href="#fnref:36" title="Jump back to footnote 36 in the text">&#8617;</a></p>
+</li>
+<li id="fn:37">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/main.py#L342-L345"><code>board-service/main.py#L342-L345</code></a>, <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/main.py#L653-L660"><code>board-service/main.py#L653-L660</code></a>, <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/main.py#L468-L475"><code>board-service/main.py#L468-L475</code></a> — <code>GET /pending/{agent}</code> (leased notices), <code>GET /snapshot</code> (unread gists, advancing cursors), and <code>POST /board/{board_id}/note</code> behind the membership check in <code>_authorize</code>.&#160;<a class="footnote-backref" href="#fnref:37" title="Jump back to footnote 37 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:37" title="Jump back to footnote 37 in the text">&#8617;</a></p>
+</li>
+<li id="fn:38">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L436-L437"><code>REPRODUCE.md#L436-L437</code></a> — "Workers run as UID/GID 10000 and can execute the root-owned, mode-0111 reference at <code>/opt/pbench/executable</code> without reading its bytes. Worker networks restrict external access to model egress."&#160;<a class="footnote-backref" href="#fnref:38" title="Jump back to footnote 38 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:38" title="Jump back to footnote 38 in the text">&#8617;</a></p>
+</li>
+<li id="fn:39">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/config/mcp.json.tmpl#L3-L10"><code>agent/config/mcp.json.tmpl#L3-L10</code></a>, <a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/config/mcp.json.tmpl#L41-L58"><code>agent/config/mcp.json.tmpl#L41-L58</code></a> — the gitea and board MCP server definitions; every server command runs through <code>/opt/mcp-notice-shim.cjs</code>.&#160;<a class="footnote-backref" href="#fnref:39" title="Jump back to footnote 39 in the text">&#8617;</a></p>
+</li>
+<li id="fn:40">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L187-L195"><code>agent/entrypoint.sh#L187-L195</code></a> — <code>COPILOT_ARGS</code>: <code>--excluded-tools=task --excluded-tools=list_agents --acp --stdio --no-auto-login --no-auto-update --no-remote --disable-builtin-mcps --additional-mcp-config=@/work/.mcp.json --no-ask-user</code>.&#160;<a class="footnote-backref" href="#fnref:40" title="Jump back to footnote 40 in the text">&#8617;</a></p>
+</li>
+<li id="fn:41">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L150-L160"><code>agent/entrypoint.sh#L150-L160</code></a> — the provider translation ("Translate the launcher's legacy ANTHROPIC_* names to Copilot's OpenAI provider"), <code>COPILOT_OFFLINE=true</code>, <code>COPILOT_AUTO_UPDATE=false</code>.&#160;<a class="footnote-backref" href="#fnref:41" title="Jump back to footnote 41 in the text">&#8617;</a></p>
+</li>
+<li id="fn:42">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/acp-bridge.py#L2-L3"><code>agent/acp-bridge.py#L2-L3</code></a> — "Bridge one Unix-socket ACP connection at a time to a non-root Copilot process. Disconnects cancel active prompts; shutdown saves the worker's HOME and /work"; the non-root check is at <code>acp-bridge.py#L24</code>.&#160;<a class="footnote-backref" href="#fnref:42" title="Jump back to footnote 42 in the text">&#8617;</a></p>
+</li>
+<li id="fn:43">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/acp-bridge.py#L143-L162"><code>agent/acp-bridge.py#L143-L162</code></a> — on disconnect, pending sessions get a native <code>session/cancel</code>; "Let Copilot settle native cancellation before terminating its tools", with an 8-second settle wait.&#160;<a class="footnote-backref" href="#fnref:43" title="Jump back to footnote 43 in the text">&#8617;</a></p>
+</li>
+<li id="fn:44">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/README.md#L20-L26"><code>agent/README.md#L20-L26</code></a> — shutdown writes <code>shutdown/&lt;boot-id&gt;/state.tar.gz</code> with HOME and the complete workspace; "A manifest becomes complete only after the archive is sealed and its size/checksum recorded. The launcher checks these manifests before automatic cleanup."&#160;<a class="footnote-backref" href="#fnref:44" title="Jump back to footnote 44 in the text">&#8617;</a></p>
+</li>
+<li id="fn:45">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/scripts/acp_driver.py#L1-L4"><code>scripts/acp_driver.py#L1-L4</code></a> — "Drive a standalone Copilot session through the container's stdio/socket adapter. Resume completed turns while more than 60 seconds remain… Reload sessions after transport/watchdog failures."&#160;<a class="footnote-backref" href="#fnref:45" title="Jump back to footnote 45 in the text">&#8617;</a></p>
+</li>
+<li id="fn:46">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L201-L208"><code>agent/entrypoint.sh#L201-L208</code></a> — "Apply both permission denials and model-visible exclusions for each MCP rule": every entry of <code>copilot-deny-tools.json</code> (60 selectors) becomes a <code>--deny-tool</code> flag and an <code>--excluded-tools</code> entry.&#160;<a class="footnote-backref" href="#fnref:46" title="Jump back to footnote 46 in the text">&#8617;</a></p>
+</li>
+<li id="fn:47">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/pbench-brief.txt#L13-L19"><code>prompts/pbench-brief.txt#L13-L19</code></a> — the iron rules: fully autonomous; no Internet ("the whole cluster is offline"); the reference binary "is <code>root:root 0111</code>… do not try to decompile or dump it".&#160;<a class="footnote-backref" href="#fnref:47" title="Jump back to footnote 47 in the text">&#8617;</a></p>
+</li>
+<li id="fn:48">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/secret-service/main.py#L2-L3"><code>secret-service/main.py#L2-L3</code></a> — "Serve bootstrap-issued worker tokens to routers on the private service network. Token reads require X-Internal-Auth."&#160;<a class="footnote-backref" href="#fnref:48" title="Jump back to footnote 48 in the text">&#8617;</a></p>
+</li>
+<li id="fn:49">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L407-L408"><code>REPRODUCE.md#L407-L408</code></a> — "The team idle watchdog nudges workers after 600 seconds of inactivity, checked every 60 seconds"; the watchdog's queue-aware nudge logic is <code>watchdog_consider</code> in <code>scripts/pbench_run.sh#L497-L523</code>.&#160;<a class="footnote-backref" href="#fnref:49" title="Jump back to footnote 49 in the text">&#8617;</a></p>
+</li>
+<li id="fn:50">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L429-L434"><code>REPRODUCE.md#L429-L434</code></a> — the release-differences note: infrastructure updates since the historical experiment, the v6 cleanroom vs the older seeded reference ("its binary differs… even when version strings match"), and the instruction to record a new run's own revision rather than claim exact historical reproduction.&#160;<a class="footnote-backref" href="#fnref:50" title="Jump back to footnote 50 in the text">&#8617;</a></p>
+</li>
+<li id="fn:51">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L74-L76"><code>REPRODUCE.md#L74-L76</code></a> — "Set <code>TASKS</code> explicitly: the generator, image builder and launcher have different built-in task lists."&#160;<a class="footnote-backref" href="#fnref:51" title="Jump back to footnote 51 in the text">&#8617;</a></p>
+</li>
+<li id="fn:52">
+<p><a href="https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/REPRODUCE.md#L443-L444"><code>REPRODUCE.md#L443-L444</code></a> — "Keep prompts fixed; changes to continuation or idle policy create a different experimental condition."&#160;<a class="footnote-backref" href="#fnref:52" title="Jump back to footnote 52 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+</main>
+<script src="../assets/storybook.js" data-kind="article"></script>
+</body>
+</html>

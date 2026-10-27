@@ -1,0 +1,15 @@
+{
+ "title": "The self-claim cycle: one loop of the cooperation prompt",
+ "subtitle": "No scheduler assigns anything — a CLAIM gist is the only reservation",
+ "participants": ["Worker", "Ref. binary", "Board", "Gitea", "Peers"],
+ "messages": [
+  {"from": 0, "to": 1, "label": "run executable on an unexplored area"},
+  {"from": 1, "to": 0, "label": "observed behavior", "dashed": true},
+  {"from": 0, "to": 2, "label": "board_write CLAIM <area> (<=100 chars)"},
+  {"from": 0, "to": 0, "label": "implement vs current main; compare outputs"},
+  {"from": 0, "to": 3, "label": "push branch, open PR, merge to main"},
+  {"from": 0, "to": 2, "label": "board_write PATCH_SUMMARY files= | idea= | evidence="},
+  {"from": 2, "to": 4, "label": "gist visible at turn start + mid-turn", "dashed": true},
+  {"note": "span", "span": [0, 4], "text": "Then back to step 1: the cycle repeats until the wall-clock budget ends"}
+ ]
+}

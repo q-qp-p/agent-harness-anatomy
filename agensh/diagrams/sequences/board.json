@@ -1,0 +1,16 @@
+{
+ "title": "Anatomy of a board entry: write, verify (text only), persist",
+ "subtitle": "The board service checks wording deterministically — it never runs the reported tests",
+ "participants": ["Worker", "Board MCP", "Board service", "MySQL", "Peers"],
+ "messages": [
+  {"from": 0, "to": 1, "label": "board_write PATCH_SUMMARY + detail"},
+  {"from": 1, "to": 2, "label": "POST /board/{id}/note (agent identity)"},
+  {"from": 2, "to": 2, "label": "verifier: caps; reject placeholder evidence"},
+  {"from": 2, "to": 3, "label": "persist gist + detail (full history kept)"},
+  {"from": 3, "to": 2, "label": "gist id G<n>", "dashed": true},
+  {"from": 2, "to": 1, "label": "admitted (or rejected, with reason)", "dashed": true},
+  {"from": 4, "to": 2, "label": "board_grep a&b,c&d over full history"},
+  {"from": 2, "to": 4, "label": "matches (default/max 500) + total count", "dashed": true},
+  {"note": "span", "span": [0, 4], "text": "A newer PATCH_SUMMARY with the same work label replaces the old one in the live view"}
+ ]
+}

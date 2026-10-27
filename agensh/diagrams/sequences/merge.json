@@ -1,0 +1,15 @@
+{
+ "title": "Merge discipline and the closing hours",
+ "subtitle": "Self-merge is the norm: zero required approvals, direct pushes to main restricted",
+ "participants": ["Worker", "Gitea", "Runner", "Mattermost", "Peers"],
+ "messages": [
+  {"from": 0, "to": 1, "label": "sync latest main into the branch"},
+  {"from": 0, "to": 1, "label": "push; open PR"},
+  {"from": 0, "to": 1, "label": "merge the PR (no approval required)"},
+  {"from": 1, "to": 4, "label": "push/PR events fan out to every router", "dashed": true},
+  {"from": 2, "to": 3, "label": "T-45m post: stop new features; land PRs"},
+  {"from": 2, "to": 3, "label": "T-5m post: merge what is ready; confirm build"},
+  {"from": 0, "to": 1, "label": "final merge to main before the cutoff"},
+  {"note": "span", "span": [0, 4], "text": "Scoring builds from a fresh clone of main — unmerged work does not count"}
+ ]
+}

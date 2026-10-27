@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One ProgramBench task through Agensh — step-by-step · Agent Harness Anatomy</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    background: #161210; color: #ece1d3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.7; padding: 48px 24px; margin: 0;
+  }
+  main { max-width: 960px; margin: 0 auto; }
+  a { color: #d08c4e; }
+  .topnav { font-size: 0.9rem; margin-bottom: 32px; }
+  .topnav a { color: #a89880; text-decoration: none; }
+  .topnav a:hover { color: #ece1d3; }
+  .topnav .sep { color: #5a4c3e; margin: 0 8px; }
+  h1 { font-size: 1.8rem; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sub { color: #a89880; margin-bottom: 28px; max-width: 640px; }
+  .input-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .input-row label { color: #a89880; font-size: 0.95rem; }
+  .input-row input {
+    flex: 1; min-width: 240px; background: #1f1a15; border: 1px solid #3a2f26;
+    border-radius: 8px; color: #ece1d3; padding: 10px 14px; font-size: 0.95rem;
+    font-family: inherit;
+  }
+  .input-row input:focus { outline: none; border-color: #d08c4e; }
+  .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 24px; }
+  .controls button {
+    background: #1f1a15; border: 1px solid #3a2f26; color: #ece1d3;
+    border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer;
+    font-family: inherit; font-weight: 600;
+  }
+  .controls button:hover { border-color: #a89880; }
+  .controls button.primary { background: #d08c4e; border-color: #d08c4e; color: #161210; }
+  .controls button.primary:hover { background: #e0a266; }
+  .counter { color: #a89880; font-size: 0.9rem; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .trace { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
+  .rail { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .rail li {
+    border: 1px solid #2c231b; border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; display: flex; gap: 10px; align-items: baseline;
+    background: transparent;
+  }
+  .rail li:hover { border-color: #a89880; }
+  .rail li.current { border-color: #d08c4e; background: #1f1a15; }
+  .rail .num {
+    color: #8a7a66; font-size: 0.8rem; font-variant-numeric: tabular-nums;
+    min-width: 16px;
+  }
+  .rail li.current .num { color: #d08c4e; font-weight: 700; }
+  .rail .t { font-size: 0.92rem; }
+  .detail {
+    border: 1px solid #3a2f26; border-radius: 12px; padding: 28px;
+    background: #1f1a15; min-height: 420px;
+  }
+  .step-head { display: flex; gap: 14px; align-items: baseline; margin-bottom: 12px; }
+  .step-head .n {
+    color: #d08c4e; font-weight: 700; font-size: 0.85rem;
+    border: 1px solid #d08c4e; border-radius: 6px; padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .step-head h2 { font-size: 1.3rem; margin: 0; }
+  .node-tag {
+    display: inline-block; margin-top: 6px; font-size: 0.8rem; color: #a89880;
+    border: 1px solid #3a2f26; border-radius: 20px; padding: 2px 10px;
+  }
+  .node-tag b { color: #ece1d3; font-weight: 600; }
+  #dInputLine {
+    margin: 14px 0 4px; padding: 10px 14px; background: #161210;
+    border: 1px solid #3a2f26; border-radius: 8px; font-size: 0.92rem;
+  }
+  #dInputLine .k { color: #a89880; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+  .cols h3 {
+    font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #a89880; margin: 0 0 10px; font-weight: 600;
+  }
+  pre {
+    background: #161210; border: 1px solid #3a2f26; border-radius: 8px;
+    padding: 14px; overflow-x: auto; margin: 0; font-size: 0.82rem; line-height: 1.55;
+  }
+  pre code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #ece1d3; background: none; padding: 0;
+  }
+  #dModules { list-style: none; padding: 0; margin: 0; }
+  #dModules li { margin-bottom: 8px; font-size: 0.9rem; }
+  #dModules .file { display: block; color: #8a7a66; font-size: 0.78rem;
+    font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .loopnote {
+    margin-top: 20px; padding: 12px 16px; border-left: 3px solid #d08c4e;
+    background: #161210; border-radius: 0 8px 8px 0; font-size: 0.92rem;
+    color: #a89880;
+  }
+  .loopnote:empty { display: none; }
+  .loopnote b { color: #ece1d3; }
+  .loopmap { margin-top: 36px; border: 1px solid #2c231b; border-radius: 12px; padding: 24px; }
+  .loopmap h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #a89880; margin: 0 0 16px; }
+  .flow { display: flex; flex-direction: column; margin-bottom: 6px; }
+  .vstep { display: flex; gap: 14px; align-items: stretch; }
+  .vrail { display: flex; flex-direction: column; align-items: center; flex: 0 0 16px; }
+  .vdot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #8a7a66;
+          margin-top: 6px; flex: 0 0 auto; }
+  .vdot.hot { border-color: #d08c4e; background: #d08c4e; }
+  .vline { width: 2px; flex: 1; background: #3a2f26; min-height: 16px; }
+  .vbody { padding: 2px 0 16px; }
+  .vstep:last-child .vbody { padding-bottom: 2px; }
+  .chip {
+    border: 1px solid #3a2f26; border-radius: 20px; padding: 4px 12px;
+    font-size: 0.82rem; background: #1f1a15; white-space: nowrap;
+  }
+  .chip.hot { border-color: #d08c4e; color: #d08c4e; }
+  .arrow { color: #8a7a66; }
+  .ret {
+    margin: 2px 0 14px 8px; padding-left: 16px; border-left: 2px solid #d08c4e;
+    font-size: 0.88rem; color: #a89880;
+  }
+  .ret b { color: #ece1d3; }
+  footer { margin-top: 48px; color: #8a7a66; font-size: 0.85rem; }
+  @media (max-width: 760px) {
+    .trace { grid-template-columns: 1fr; }
+    .rail { flex-direction: row; overflow-x: auto; padding-bottom: 8px; }
+    .rail li { flex: 0 0 auto; }
+    .cols { grid-template-columns: 1fr; }
+    .detail { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <nav class="topnav"><a href="../#agensh">&larr; Agent Harness Anatomy</a><span class="sep">/</span><a href="./">Agensh: the orchestrator is a prompt</a></nav>
+  <h1 id="pageTitle">One ProgramBench task, end to end — Agensh</h1>
+  <p class="sub" id="pageSub"></p>
+
+  <div class="input-row">
+    <label for="userInput">Trace it with your own input:</label>
+    <input id="userInput" type="text" value="" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" aria-label="Previous step">&larr; Prev</button>
+    <button id="playBtn" class="primary" aria-label="Play or pause">&#9654; Play</button>
+    <button id="nextBtn" aria-label="Next step">Next &rarr;</button>
+    <span class="counter" id="counter"></span>
+  </div>
+
+  <div class="trace">
+    <ol class="rail" id="rail"></ol>
+    <section class="detail" aria-live="polite">
+      <div class="step-head">
+        <span class="n" id="dNum"></span>
+        <div>
+          <h2 id="dTitle"></h2>
+          <span class="node-tag">architecture node: <b id="dNode"></b></span>
+        </div>
+      </div>
+      <div id="dInputLine" hidden><span class="k">User input:</span> <span id="dInputVal"></span></div>
+      <p id="dNarrative"></p>
+      <div class="cols">
+        <div>
+          <h3>Representation at this boundary</h3>
+          <pre><code id="dRepr"></code></pre>
+        </div>
+        <div>
+          <h3>Source modules</h3>
+          <ul id="dModules"></ul>
+        </div>
+      </div>
+      <div class="loopnote" id="dLoop"></div>
+    </section>
+  </div>
+
+  <section class="loopmap">
+    <h3>Loop map</h3>
+    <div class="flow" id="flowMain"></div>
+<div class="ret"><b>One task</b> &mdash; the runner seeds the repo and opens issue #1 with no assignee &rarr; kickoff DMs wake the workers &rarr; each router turns service events into serialized ACP prompts with the board snapshot prepended &rarr; a worker observes the reference and posts a CLAIM &rarr; builds and verifies &rarr; pushes, opens a PR and merges it &rarr; publishes a PATCH_SUMMARY &rarr; the cycle repeats.</div>
+    <div class="flow" id="flowBranch"></div>
+<div class="ret"><b>Two delivery speeds</b> &mdash; queued events (pushes, PRs, channel posts) arrive at turn boundaries as batched <code>[event]</code> summaries, while direct messages and new board gists travel the fast lane: the MCP notice shim appends them to the tool result a worker is already waiting on, inside the current turn, and acknowledges them only after emitting.</div>
+<div class="ret" style="border-color:#d08c4e"><b>Nothing here assigns work</b> &mdash; no step in this trace contains a scheduler, a planner or an approval: the task issue is unassigned, areas are reserved by expiring CLAIM gists, collisions are settled by direct message, and merges are self-merges with zero required approvals. The coordination rules live in the rendered <code>AGENTS.md</code>; the code in this trace only transports events and records state.</div>
+</section>
+
+  <footer>Simplified shapes of real Agensh events, prompts and records, not verbatim runtime dumps. All module links pin <span id="sha"></span>.</footer>
+</main>
+
+<script>
+(function () {
+  var LOOP_NOTES = {
+    1: "<b>No assignee.</b> The task enters the system as an unassigned issue plus a round of direct messages — who works on what is decided afterwards, by the workers, on the board.",
+    2: "<b>One queue per worker.</b> The same service event is stored once per agent under a (dedup_key, agent) key, so delivery, retry and acknowledgement are per-worker state, never global.",
+    3: "<b>Context as a prefix.</b> The board reaches the model as files rendered into a single-use prompt prefix — fetched fresh each turn, cleared after use, and advanced by cursors so gists are not re-shown.",
+    4: "<b>The claim is the assignment.</b> A CLAIM gist is a soft, expiring reservation. The session itself is a stock Copilot ACP session; only its instructions, tools and surroundings are Agensh's.",
+    5: "<b>Urgency is routing.</b> The shim turns any tool result into a delivery channel for DMs and gists; the prompt assigns the meanings — a FAIL means stop, a same-area CLAIM means negotiate by DM.",
+    6: "<b>Verification is wording-checked.</b> The board's verifier caps length and rejects placeholder evidence, but it never runs the reported commands — 'verified' on the board is a property of the text.",
+    7: "<b>Self-merge is the mechanism.</b> Zero required approvals, direct pushes to main restricted, the PR is the integration record — and its events are how peers learn the merge happened.",
+    8: "<b>The runner's hand.</b> Deadline posts and idle nudges are the only central interventions, and both are rendered prompt files. At the cutoff, only committed main HEAD exists as far as scoring is concerned."
+  };
+  var FLOW_MAIN = [1,2,3,4,5,6,7,8], FLOW_BRANCH = [];
+
+  var data, idx = 0, timer = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var rail = $("rail"), userInput = $("userInput");
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderFlow(el, steps, hot) {
+    el.innerHTML = steps.map(function (n, i) {
+      var s = data.steps[n - 1];
+      var last = i === steps.length - 1;
+      var dot = '<span class="vdot' + (n === hot ? ' hot' : '') + '"></span>';
+      var line = last ? '' : '<span class="vline"></span>';
+      var chip = '<span class="chip' + (n === hot ? ' hot' : '') + '">' + n + ' &middot; ' + esc(s.title) + '</span>';
+      return '<div class="vstep"><div class="vrail">' + dot + line + '</div>' +
+             '<div class="vbody">' + chip + '</div></div>';
+    }).join("");
+  }
+
+  function buildRail() {
+    rail.innerHTML = "";
+    data.steps.forEach(function (s, i) {
+      var li = document.createElement("li");
+      li.innerHTML = '<span class="num">' + s.step + '</span><span class="t"></span>';
+      li.querySelector(".t").textContent = s.title;
+      li.addEventListener("click", function () { stop(); go(i); });
+      rail.appendChild(li);
+    });
+  }
+
+  function go(i) {
+    idx = Math.max(0, Math.min(data.steps.length - 1, i));
+    var s = data.steps[idx];
+    Array.prototype.forEach.call(rail.children, function (li, j) {
+      li.classList.toggle("current", j === idx);
+    });
+    var cur = rail.children[idx];
+    if (cur) cur.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    $("dNum").textContent = "Step " + s.step;
+    $("dTitle").textContent = s.title;
+    $("dNode").textContent = s.node;
+    if (idx === 0) {
+      $("dInputLine").hidden = false;
+      $("dInputVal").textContent = "\u201c" + userInput.value + "\u201d";
+    } else {
+      $("dInputLine").hidden = true;
+    }
+    $("dNarrative").textContent = s.narrative;
+    $("dRepr").textContent = s.representation;
+    var ul = $("dModules");
+    ul.innerHTML = "";
+    s.modules.forEach(function (m) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = m.url; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = m.label;
+      li.appendChild(a);
+      var f = document.createElement("span");
+      f.className = "file"; f.textContent = m.file;
+      li.appendChild(f);
+      ul.appendChild(li);
+    });
+    $("dLoop").innerHTML = LOOP_NOTES[s.step] || "";
+    $("counter").textContent = (idx + 1) + " / " + data.steps.length;
+    renderFlow($("flowMain"), FLOW_MAIN, s.step);
+    renderFlow($("flowBranch"), FLOW_BRANCH, -1);
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    $("playBtn").innerHTML = "&#9654; Play";
+  }
+  function play() {
+    if (timer) { stop(); return; }
+    if (idx >= data.steps.length - 1) go(0);
+    $("playBtn").innerHTML = "&#10074;&#10074; Pause";
+    timer = setInterval(function () {
+      if (idx >= data.steps.length - 1) { stop(); return; }
+      go(idx + 1);
+    }, 4500);
+  }
+
+  $("prevBtn").addEventListener("click", function () { stop(); go(idx - 1); });
+  $("nextBtn").addEventListener("click", function () { stop(); go(idx + 1); });
+  $("playBtn").addEventListener("click", play);
+  userInput.addEventListener("input", function () { if (idx === 0) go(0); });
+  document.addEventListener("keydown", function (e) {
+    if (document.activeElement === userInput) return;
+    if (e.key === "ArrowRight") { stop(); go(idx + 1); }
+    if (e.key === "ArrowLeft") { stop(); go(idx - 1); }
+    if (e.key === " ") { e.preventDefault(); play(); }
+  });
+
+  fetch("diagrams/agensh-trace-steps.json")
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) {
+      data = d;
+      document.title = d.title + " \u00b7 Agent Harness Anatomy";
+      $("pageTitle").textContent = d.title;
+      $("pageSub").textContent = "Follow one ProgramBench task through an 8-worker Agensh team: the runner seeds the repo and opens the task issue with no assignee, routers turn Gitea and Mattermost activity into serialized ACP prompts with the board snapshot prepended, a worker claims an area on the shared context board, a peer's FAIL arrives mid-turn through the notice shim, and the work lands by self-merge before the deadline posts close the run. " +
+        "Each step shows the representation Agensh uses at that boundary and the source modules involved. " + d.note;
+      $("sha").textContent = "microsoft/Agensh @ " + d.sha.slice(0, 12) + "\u2026 (pinned by tag v1.0)";
+      if (!userInput.value) userInput.value = d.example_input;
+      buildRail();
+      go(0);
+    })
+    .catch(function () {
+      $("pageSub").textContent = "Could not load the trace data (diagrams/agensh-trace-steps.json).";
+    });
+})();
+</script>
+<script src="../assets/storybook.js" data-kind="trace" data-after=".topnav"></script>
+</body>
+</html>
