@@ -3,7 +3,7 @@
 # Agent Harness Anatomy
 
 Rigorous, source-grounded architecture teardowns of AI agent harnesses —
-18 teardowns and counting, from pi and aider to Grok Build and Harness².
+19 teardowns and counting, from pi and aider to Harness² and Agensh.
 Every behavioral claim is pinned to verifiable source code; no product-review prose.
 
 Companion repo to the Substack series.
@@ -34,6 +34,7 @@ By **David P. S. Marques** — [LinkedIn](https://ca.linkedin.com/in/dpsmarques)
 | 16 | Deep Agents (deepagents==0.7.25) | [deepagents/article.md](deepagents/article.md) | [Read on Substack](https://agentharnessanatomy.substack.com/p/deep-agents-the-harness-that-is-a) |
 | 17 | Grok Build (2bdd1d6) | [grok-build/article.md](grok-build/article.md) | [Read on Substack](https://agentharnessanatomy.substack.com/p/grok-build-the-harness-whose-control) |
 | 18 | Harness² (1cfe254) | [harness2/article.md](harness2/article.md) | [Read on Substack](https://agentharnessanatomy.substack.com/p/harness-the-harness-is-the-thing) |
+| 19 | Agensh (v1.0) | [agensh/article.md](agensh/article.md) | forthcoming |
 
 ## Embedded Harness Anatomy
 

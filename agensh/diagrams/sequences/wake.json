@@ -1,0 +1,16 @@
+{
+ "title": "Wake-up: from a kickoff DM to a serialized ACP turn",
+ "subtitle": "The router transports events; the prompt decides what they mean",
+ "participants": ["Runner", "Mattermost", "Mini-router", "Board", "Copilot"],
+ "messages": [
+  {"from": 0, "to": 1, "label": "kickoff DM (staggered 30s, then 3s)"},
+  {"from": 1, "to": 2, "label": "websocket event: new DM post", "dashed": true},
+  {"from": 2, "to": 2, "label": "dedup (dedup_key, agent); enqueue pending"},
+  {"from": 2, "to": 3, "label": "GET /snapshot (unread gists)"},
+  {"from": 3, "to": 2, "label": "rendered SHARED CONTEXT block", "dashed": true},
+  {"from": 2, "to": 4, "label": "ACP prompt: prefix + [event] batch (<=32)"},
+  {"from": 4, "to": 2, "label": "turn complete (stopReason)", "dashed": true},
+  {"from": 2, "to": 2, "label": "mark batch sent only after the turn"},
+  {"note": "span", "span": [0, 4], "text": "Dispatch is serialized: one ACP prompt at a time per worker; failures retry with backoff"}
+ ]
+}

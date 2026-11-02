@@ -1,0 +1,310 @@
+{
+ "edges": [
+  {
+   "from": "runner",
+   "label": "seeds repo; opens issue #1",
+   "to": "gitea",
+   "label_dx": -15
+  },
+  {
+   "from": "runner",
+   "label": "kickoff DMs; deadline + idle nudges",
+   "side": "right",
+   "to": "mattermost",
+   "label_dy": 57,
+   "label_dx": 20
+  },
+  {
+   "from": "secret",
+   "label": "worker token, X-Internal-Auth",
+   "to": "router",
+   "label_dx": 45
+  },
+  {
+   "from": "gitea",
+   "label": "SSE + polling: issues, PRs, pushes",
+   "to": "router",
+   "label_dx": -35,
+   "label_dy": -52
+  },
+  {
+   "from": "mattermost",
+   "label": "websocket: posts, DMs, reactions",
+   "to": "router",
+   "label_dy": 30
+  },
+  {
+   "from": "board",
+   "label": "pending: DMs + gists",
+   "to": "shim",
+   "label_dx": -75
+  },
+  {
+   "from": "router",
+   "label": "serialized ACP batches + board prefix",
+   "to": "bridge",
+   "label_dx": 55
+  },
+  {
+   "from": "prompt",
+   "label": "rendered to AGENTS.md",
+   "to": "copilot",
+   "label_dx": -140
+  },
+  {
+   "from": "bridge",
+   "label": "spawns copilot --acp --stdio (UID 10000)",
+   "to": "copilot"
+  },
+  {
+   "from": "copilot",
+   "label": "MCP tools/call results pass through",
+   "to": "shim"
+  }
+ ],
+ "nodes": [
+  {
+   "excerpt": "opening task issue (no assignee; peers self-select)",
+   "grade": "verified",
+   "h": 96,
+   "id": "runner",
+   "label": "Experiment runner",
+   "links": [
+    {
+     "label": "pbench_run.sh:415 — the task issue, opened unassigned",
+     "line": 415,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/scripts/pbench_run.sh#L415"
+    },
+    {
+     "label": "pbench_run.sh:334 — deadline reminder loop (T-45m, T-5m)",
+     "line": 334,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/scripts/pbench_run.sh#L334-L352"
+    }
+   ],
+   "step": 1,
+   "sub": "scripts/pbench_run.sh",
+   "w": 240,
+   "x": 20,
+   "y": 60
+  },
+  {
+   "excerpt": "issue #1 is the task. You open your own issues for the areas you take, and PRs carry the work.",
+   "grade": "verified",
+   "h": 96,
+   "id": "gitea",
+   "label": "Gitea: shared workspace",
+   "links": [
+    {
+     "label": "gen-compose-prod.py:71 — the gitea service in the generated stack",
+     "line": 71,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/tools/gen-compose-prod.py#L71-L76"
+    },
+    {
+     "label": "agents.txt:10 — issue #1 is the task; workers open their own issues",
+     "line": 10,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L10-L14"
+    }
+   ],
+   "step": 7,
+   "sub": "compose-gen · gitea 1.22.6",
+   "w": 240,
+   "x": 20,
+   "y": 190
+  },
+  {
+   "excerpt": "A direct message reaches a peer inside their current turn — the fast way to settle a collision.",
+   "grade": "verified",
+   "h": 96,
+   "id": "mattermost",
+   "label": "Mattermost: messaging",
+   "links": [
+    {
+     "label": "gen-compose-prod.py:265 — the mattermost service in the generated stack",
+     "line": 265,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/tools/gen-compose-prod.py#L265-L274"
+    },
+    {
+     "label": "agents.txt:15 — channel pbench-task; DMs reach a peer mid-turn",
+     "line": 15,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L15-L20"
+    }
+   ],
+   "step": 8,
+   "sub": "compose-gen · mattermost 10.6",
+   "w": 240,
+   "x": 20,
+   "y": 320
+  },
+  {
+   "excerpt": "Maintain the recent shared-context view: typed notes, expiring claims, patch status, conservative deduplication.",
+   "grade": "verified",
+   "h": 96,
+   "id": "board",
+   "label": "Shared context board",
+   "links": [
+    {
+     "label": "shared_lessons.py:14 — the five gist types and their caps",
+     "line": 14,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/shared_lessons.py#L14-L23"
+    },
+    {
+     "label": "main.py:468 — POST /board/{board_id}/note, membership-checked",
+     "line": 468,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/board-service/main.py#L468-L496"
+    }
+   ],
+   "step": 3,
+   "sub": "board-service/ · port 8660",
+   "w": 240,
+   "x": 20,
+   "y": 450
+  },
+  {
+   "excerpt": "Serve bootstrap-issued worker tokens to routers on the private service network. Token reads require X-Internal-Auth.",
+   "grade": "verified",
+   "h": 96,
+   "id": "secret",
+   "label": "Secret service",
+   "links": [
+    {
+     "label": "secret-service/main.py:2 — tokens served to routers only, auth-gated",
+     "line": 2,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/secret-service/main.py#L2-L3"
+    }
+   ],
+   "step": 2,
+   "sub": "secret-service/main.py",
+   "w": 240,
+   "x": 420,
+   "y": 60
+  },
+  {
+   "excerpt": "The router delivers activity; the agent prompt defines how agents cooperate.",
+   "grade": "verified",
+   "h": 96,
+   "id": "router",
+   "label": "Mini-router",
+   "links": [
+    {
+     "label": "main.ts:2 — one router wires queue, listeners and dispatcher per worker",
+     "line": 2,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/main.ts#L2-L3"
+    },
+    {
+     "label": "dispatcher.ts:2 — serialized turns, acknowledged after completion",
+     "line": 2,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/dispatcher.ts#L2-L4"
+    },
+    {
+     "label": "state.ts:54 — per-agent dedup key on the event store",
+     "line": 54,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/src/state.ts#L54-L56"
+    }
+   ],
+   "step": 2,
+   "sub": "mini-router/ · one per worker",
+   "w": 240,
+   "x": 420,
+   "y": 190
+  },
+  {
+   "excerpt": "The work cycle. Each step is finished by the person doing it.",
+   "grade": "verified",
+   "h": 96,
+   "id": "prompt",
+   "label": "Cooperation prompt",
+   "links": [
+    {
+     "label": "agents.txt:68 — the six-step work cycle",
+     "line": 68,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/agents.txt#L68-L79"
+    },
+    {
+     "label": "prompts/README.md:23 — cooperation is defined by these prompts",
+     "line": 23,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/prompts/README.md#L23-L24"
+    }
+   ],
+   "step": 6,
+   "sub": "agents.txt -> /work/AGENTS.md",
+   "w": 240,
+   "x": 820,
+   "y": 60
+  },
+  {
+   "excerpt": "--acp --stdio --no-ask-user --no-remote --disable-builtin-mcps --additional-mcp-config=@/work/.mcp.json",
+   "grade": "verified",
+   "h": 96,
+   "id": "copilot",
+   "label": "Copilot CLI worker",
+   "links": [
+    {
+     "label": "entrypoint.sh:187 — Copilot launch flags (ACP, no-ask-user, subagent tools excluded)",
+     "line": 187,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L187-L195"
+    },
+    {
+     "label": "entrypoint.sh:14 — this release supports AGENT_KIND=copilot only",
+     "line": 14,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/entrypoint.sh#L14"
+    }
+   ],
+   "step": 4,
+   "sub": "agent/entrypoint.sh · ACP",
+   "w": 240,
+   "x": 820,
+   "y": 190
+  },
+  {
+   "excerpt": "Bridge one Unix-socket ACP connection at a time to a non-root Copilot process.",
+   "grade": "verified",
+   "h": 96,
+   "id": "bridge",
+   "label": "ACP bridge",
+   "links": [
+    {
+     "label": "acp-bridge.py:2 — one socket connection at a time, non-root child",
+     "line": 2,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/acp-bridge.py#L2-L3"
+    },
+    {
+     "label": "acp-bridge.py:148 — disconnect sends native session/cancel",
+     "line": 148,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/acp-bridge.py#L148-L155"
+    }
+   ],
+   "step": 4,
+   "sub": "agent/acp-bridge.py · socket",
+   "w": 240,
+   "x": 420,
+   "y": 320
+  },
+  {
+   "excerpt": "Wrap an infrastructure MCP server and append DMs and fresh board gists to tools/call results.",
+   "grade": "verified",
+   "h": 96,
+   "id": "shim",
+   "label": "MCP notice shim",
+   "links": [
+    {
+     "label": "mcp-notice-shim.cjs:3 — DMs and gists appended to tool results",
+     "line": 3,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/mini-router/mcp-notice-shim.cjs#L3-L5"
+    },
+    {
+     "label": "mcp.json.tmpl:3 — gitea, mattermost and board MCP servers, all shim-wrapped",
+     "line": 3,
+     "url": "https://github.com/microsoft/Agensh/blob/0468a3e6a58b51dc2b84871fcaa0df22b0d1033e/agent/config/mcp.json.tmpl#L3-L10"
+    }
+   ],
+   "step": 5,
+   "sub": "mcp-notice-shim.cjs",
+   "w": 240,
+   "x": 420,
+   "y": 450
+  }
+ ],
+ "repo": "https://github.com/microsoft/Agensh",
+ "sha": "0468a3e6a58b51dc2b84871fcaa0df22b0d1033e",
+ "title": "Agensh — decentralized coordination over a borrowed agent loop"
+}

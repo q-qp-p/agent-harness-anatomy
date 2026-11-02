@@ -1,0 +1,16 @@
+{
+ "title": "Mid-turn delivery: the MCP notice shim",
+ "subtitle": "DMs and new board gists are appended to the tool result the worker is waiting on",
+ "participants": ["Worker", "Notice shim", "MCP server", "Board service", "Peer"],
+ "messages": [
+  {"from": 4, "to": 3, "label": "peer posts a DM / board_write FAIL"},
+  {"from": 0, "to": 1, "label": "tools/call (any MCP tool)"},
+  {"from": 1, "to": 2, "label": "forward to the real MCP server"},
+  {"from": 2, "to": 1, "label": "tool result", "dashed": true},
+  {"from": 1, "to": 3, "label": "GET /pending/{agent} (lease notices)"},
+  {"from": 3, "to": 1, "label": "notices: DM + new gists", "dashed": true},
+  {"from": 1, "to": 0, "label": "result + notices appended to its text", "dashed": true},
+  {"from": 1, "to": 3, "label": "POST /shown/{agent} (ack after emit)"},
+  {"note": "span", "span": [0, 4], "text": "A CLAIM on the worker's own area is a collision: the prompt says settle it by DM"}
+ ]
+}

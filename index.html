@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent Harness Anatomy</title>
-<meta name="description" content="Rigorous, source-grounded architecture teardowns of AI agent harnesses — 18 systems dissected, every behavioral claim pinned to verifiable source code.">
+<meta name="description" content="Rigorous, source-grounded architecture teardowns of AI agent harnesses — 19 systems dissected, every behavioral claim pinned to verifiable source code.">
 <meta name="author" content="David P. S. Marques">
 <meta property="og:title" content="Agent Harness Anatomy">
-<meta property="og:description" content="Rigorous, source-grounded architecture teardowns of AI agent harnesses — 18 systems dissected, every behavioral claim pinned to verifiable source code.">
+<meta property="og:description" content="Rigorous, source-grounded architecture teardowns of AI agent harnesses — 19 systems dissected, every behavioral claim pinned to verifiable source code.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://dpsm.github.io/agent-harness-anatomy/">
 <style>
@@ -322,6 +322,16 @@
     loop that waits for an invitation.</p>
     <div class="links">
       <a class="primary" href="embedded/">Enter the embedded series</a>
+    </div>
+  </div>
+
+  <div class="article" id="agensh">
+    <h2>#19 &mdash; Agensh: the orchestrator is a prompt</h2>
+    <p>Microsoft's decentralized multi-agent harness: there is no orchestrator in the code at all. The cooperation loop — observe, claim, build, verify, merge, publish — lives in an 85-line prompt rendered into each worker's <code>AGENTS.md</code>; workers self-select from an unassigned task issue, reserve areas with expiring CLAIM gists on a shared context board, and self-merge with zero required approvals. The code underneath is transport: Gitea for the workspace, Mattermost for messaging, a per-worker event router that turns service activity into serialized ACP prompts to a stock Copilot CLI session, and a notice shim that appends a peer's DM or a falsified hypothesis to the tool result a worker is already waiting on — mid-turn.</p>
+    <div class="links">
+      <a class="primary" href="agensh/trace.html">Step through a live turn</a>
+      <a class="secondary" href="diagrams/template.html?data=../agensh/diagrams/agensh.json">Interactive diagram</a>
+      <a class="secondary" href="agensh/">Read the article</a>
     </div>
   </div>
 
