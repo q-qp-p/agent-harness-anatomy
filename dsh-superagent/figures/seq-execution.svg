@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 671" width="1600" font-family="system-ui, -apple-system, sans-serif">
+<defs><marker id="arrc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#d08c4e"/></marker><marker id="arrr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#8a7a66"/></marker></defs>
+<rect x="0" y="0" width="1600" height="671" fill="#f7f2e9"/>
+<text x="77.10843373493975" y="44" font-size="26" font-weight="700" fill="#000000">Execution - a worker Session runs the Ticket</text>
+<text x="77.10843373493975" y="74" font-size="15" fill="#000000">startAssignment spawns worker-&lt;ticketId&gt; in its own directory; Reports stay on the Ticket; the result replies to the origin</text>
+<line x1="198" y1="110" x2="198" y2="613" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="96" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="198" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Engine</text>
+<line x1="439" y1="110" x2="439" y2="613" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="337" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="439" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">DshExecutor</text>
+<line x1="680" y1="110" x2="680" y2="613" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="578" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="680" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Worker (dsh)</text>
+<line x1="920" y1="110" x2="920" y2="613" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="819" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="920" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Store</text>
+<line x1="1161" y1="110" x2="1161" y2="613" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="1060" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="1161" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Outbox</text>
+<line x1="1402" y1="110" x2="1402" y2="613" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="1301" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="1402" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Origin chat</text>
+<line x1="198" y1="162" x2="429" y2="162" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="240" cy="148" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="240" y="153" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">1</text>
+<text x="258" y="153" font-size="14" fill="#000000">startAssignment(assignment)</text>
+<path d="M 439 214 h 42 v 25 H 449" fill="none" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="460" cy="198" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="460" y="203" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">2</text>
+<text x="491" y="219" font-size="14" fill="#000000">ensure worker-&lt;ticketId&gt;, own directory</text>
+<line x1="439" y1="266" x2="670" y2="266" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="481" cy="252" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="481" y="257" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">3</text>
+<text x="499" y="257" font-size="14" fill="#000000">work prompt + Mandate scope</text>
+<path d="M 680 318 h 42 v 25 H 690" fill="none" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="701" cy="302" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="701" y="307" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">4</text>
+<text x="732" y="323" font-size="14" fill="#000000">foreground shell backgrounds after 5s</text>
+<line x1="680" y1="370" x2="208" y2="370" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="361" cy="356" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="361" y="361" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">5</text>
+<text x="379" y="361" font-size="14" fill="#000000">report(progress)</text>
+<line x1="198" y1="422" x2="910" y2="422" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="481" cy="408" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="481" y="413" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">6</text>
+<text x="499" y="413" font-size="14" fill="#000000">record Report on the Ticket</text>
+<line x1="680" y1="474" x2="208" y2="474" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="361" cy="460" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="361" y="465" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">7</text>
+<text x="379" y="465" font-size="14" fill="#000000">report(ready): result + evidence</text>
+<line x1="198" y1="526" x2="1151" y2="526" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="602" cy="512" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="602" y="517" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">8</text>
+<text x="620" y="517" font-size="14" fill="#000000">enqueue result reply</text>
+<line x1="1161" y1="578" x2="1392" y2="578" stroke="#8a7a66" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrr)"/>
+<circle cx="1204" cy="564" r="11" fill="#ffffff" stroke="#8a7a66" stroke-width="1.5"/>
+<text x="1204" y="569" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">9</text>
+<text x="1222" y="569" font-size="14" fill="#000000">result reply to origin conversation</text>
+</svg>

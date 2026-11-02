@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 723" width="1600" font-family="system-ui, -apple-system, sans-serif">
+<defs><marker id="arrc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#d08c4e"/></marker><marker id="arrr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#8a7a66"/></marker></defs>
+<rect x="0" y="0" width="1600" height="723" fill="#f7f2e9"/>
+<text x="77.10843373493975" y="44" font-size="26" font-weight="700" fill="#000000">Admission - a comment becomes a Ticket</text>
+<text x="77.10843373493975" y="74" font-size="15" fill="#000000">receive stores once; the gate and the Assessor decide; Ticket, Mandate and Assignment land in one transaction</text>
+<line x1="198" y1="110" x2="198" y2="665" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="96" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="198" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Person</text>
+<line x1="439" y1="110" x2="439" y2="665" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="337" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="439" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">GitHub Source</text>
+<line x1="680" y1="110" x2="680" y2="665" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="578" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="680" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Engine</text>
+<line x1="920" y1="110" x2="920" y2="665" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="819" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="920" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Policy</text>
+<line x1="1161" y1="110" x2="1161" y2="665" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="1060" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="1161" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Assessor</text>
+<line x1="1402" y1="110" x2="1402" y2="665" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="1301" y="82" width="202" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="1402" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Outbox</text>
+<line x1="198" y1="162" x2="429" y2="162" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="240" cy="148" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="240" y="153" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">1</text>
+<text x="258" y="153" font-size="14" fill="#000000">posts a comment on an issue</text>
+<line x1="439" y1="214" x2="670" y2="214" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="481" cy="200" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="481" y="205" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">2</text>
+<text x="499" y="205" font-size="14" fill="#000000">receive(Trigger): stable id, human, addressed</text>
+<path d="M 680 266 h 42 v 25 H 690" fill="none" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="701" cy="250" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="701" y="255" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">3</text>
+<text x="732" y="271" font-size="14" fill="#000000">store once; fan out; queue an Eval</text>
+<line x1="680" y1="318" x2="910" y2="318" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="722" cy="304" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="722" y="309" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">4</text>
+<text x="740" y="309" font-size="14" fill="#000000">gate(trigger): admission table</text>
+<line x1="920" y1="370" x2="690" y2="370" stroke="#8a7a66" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrr)"/>
+<circle cx="722" cy="356" r="11" fill="#ffffff" stroke="#8a7a66" stroke-width="1.5"/>
+<text x="722" y="361" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">5</text>
+<text x="740" y="361" font-size="14" fill="#000000">inferred candidate</text>
+<line x1="680" y1="422" x2="1151" y2="422" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="842" cy="408" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="842" y="413" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">6</text>
+<text x="860" y="413" font-size="14" fill="#000000">request(candidate): card via durable effect</text>
+<line x1="1161" y1="474" x2="690" y2="474" stroke="#8a7a66" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrr)"/>
+<circle cx="842" cy="460" r="11" fill="#ffffff" stroke="#8a7a66" stroke-width="1.5"/>
+<text x="842" y="465" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">7</text>
+<text x="860" y="465" font-size="14" fill="#000000">decide: accept - rule matched, intent evidence</text>
+<path d="M 680 526 h 42 v 25 H 690" fill="none" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="701" cy="510" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="701" y="515" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">8</text>
+<text x="732" y="531" font-size="14" fill="#000000">Ticket + Mandate + Assignment, atomically</text>
+<line x1="680" y1="578" x2="1392" y2="578" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="963" cy="564" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="963" y="569" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">9</text>
+<text x="981" y="569" font-size="14" fill="#000000">enqueue acknowledgement</text>
+<line x1="1402" y1="630" x2="449" y2="630" stroke="#8a7a66" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrr)"/>
+<circle cx="842" cy="616" r="11" fill="#ffffff" stroke="#8a7a66" stroke-width="1.5"/>
+<text x="842" y="621" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">10</text>
+<text x="860" y="621" font-size="14" fill="#000000">reply effect: send acknowledgement</text>
+</svg>

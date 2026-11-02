@@ -1,0 +1,385 @@
+{
+ "title": "dsh-superagent - a super-agent bundle on DeepSeek Harness",
+ "repo": "https://github.com/deepseek-ai/dsh-superagent-prototype",
+ "sha": "6337fc823ce20251c8de8085948165c81aaa701e",
+ "nodes": [
+  {
+   "id": "github",
+   "step": 1,
+   "label": "GitHub Source",
+   "sub": "src/sources/github.ts",
+   "x": 20,
+   "y": 280,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Polling Source plugin: notifications, repository streams, open-Ticket PRs, then subscribed Threads. Translates events into Triggers with stable ids; human from account type, addressed from a mention of the agent login.",
+   "links": [
+    {
+     "label": "github.ts:38-111 - kind, scope, Policy part",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github.ts#L38-L111",
+     "line": 38
+    },
+    {
+     "label": "github.ts:274-296 - polling round",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github.ts#L274-L296",
+     "line": 274
+    },
+    {
+     "label": "github-trigger.ts:55-108 - Trigger translation",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github-trigger.ts#L55-L108",
+     "line": 55
+    }
+   ]
+  },
+  {
+   "id": "feishu",
+   "step": 2,
+   "label": "Feishu Source",
+   "sub": "src/sources/feishu.ts",
+   "x": 20,
+   "y": 410,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Feishu Source plugin (disabled by default in the bundle): chats, direct messages and other chats behind the same SourceKind contract, with a Policy part and syncChat roster sync.",
+   "links": [
+    {
+     "label": "feishu.ts:31-105 - kind and Policy part",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/feishu.ts#L31-L105",
+     "line": 31
+    },
+    {
+     "label": "feishu.ts:106-139 - plugin entry and loops",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/feishu.ts#L106-L139",
+     "line": 106
+    }
+   ]
+  },
+  {
+   "id": "panel",
+   "step": 3,
+   "label": "Panel + HTTP API",
+   "sub": "src/app/http.ts",
+   "x": 20,
+   "y": 540,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Loopback-only management HTTP routes with same-origin enforcement for the web panel: ticket and thread views, settings, and person commands such as stop and retry, issued through role-scoped Engine interfaces.",
+   "links": [
+    {
+     "label": "http.ts:1-40 - loopback panel routes",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/http.ts#L1-L40",
+     "line": 1
+    },
+    {
+     "label": "runtime.ts:55-160 - HTTP route registration",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/runtime.ts#L55-L160",
+     "line": 55
+    }
+   ]
+  },
+  {
+   "id": "runtime",
+   "step": 4,
+   "label": "Runtime",
+   "sub": "src/app/runtime.ts",
+   "x": 370,
+   "y": 20,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Composition root: locks the state directory, opens the Store at <stateDir>/orchestrator.sqlite, wires Engine, Sources, Effects, Outbox, Passes, Sessions, DshExecutor and MasterAssessor; owns startup and shutdown.",
+   "links": [
+    {
+     "label": "runtime.ts:55-160 - composition root",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/runtime.ts#L55-L160",
+     "line": 55
+    }
+   ]
+  },
+  {
+   "id": "passes",
+   "step": 5,
+   "label": "Passes - 2s tick",
+   "sub": "src/app/passes.ts",
+   "x": 370,
+   "y": 150,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "A 2-second interval pump, serialized and coalesced: effects.kick() first, then engine.evaluateDue() - expiring and requeueing Evals, resuming paused Tickets, starting due work.",
+   "links": [
+    {
+     "label": "passes.ts:22-69 - 2s pump",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/passes.ts#L22-L69",
+     "line": 22
+    },
+    {
+     "label": "engine.ts:65-90 - evaluateDue",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts#L65-L90",
+     "line": 65
+    }
+   ]
+  },
+  {
+   "id": "store",
+   "step": 6,
+   "label": "Store",
+   "sub": "src/app/store.ts",
+   "x": 370,
+   "y": 670,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "SQLite via node:sqlite in WAL mode, schema version 11, in the same file as the durable effect queue: Triggers, Threads, Tickets, Assignments, outbox receipts and every Source cursor spelled once in the KV registry.",
+   "links": [
+    {
+     "label": "store.ts:51-110 - SQLite store, WAL",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/store.ts#L51-L110",
+     "line": 51
+    },
+    {
+     "label": "kv.ts:20-58 - KV key registry",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/kv.ts#L20-L58",
+     "line": 20
+    }
+   ]
+  },
+  {
+   "id": "engine",
+   "step": 7,
+   "label": "Engine - sole writer",
+   "sub": "src/core/engine.ts",
+   "x": 720,
+   "y": 280,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "The single transactional entry point: receive, evaluateDue, decide, attach, reply. Every command runs in one synchronous repository transaction; callers get role-scoped Pick interfaces, never the whole Engine.",
+   "links": [
+    {
+     "label": "engine.ts:16-45 - Engine, role-scoped Picks",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts#L16-L45",
+     "line": 16
+    },
+    {
+     "label": "engine.ts:40-55 - receive: store once, fan out",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts#L40-L55",
+     "line": 40
+    },
+    {
+     "label": "engine.ts:92-135 - decide / attach / reply",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts#L92-L135",
+     "line": 92
+    }
+   ]
+  },
+  {
+   "id": "policy",
+   "step": 8,
+   "label": "Policy load / parse",
+   "sub": "src/policy.ts",
+   "x": 720,
+   "y": 540,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Settings and rules: accept mode (default observe), eval timeout (default 120s), maxWorkers (default 3). The gate settles explicit, follow-up, admission-table and bot paths in precedence order; POLICY_REVISION is mandate-v3.",
+   "links": [
+    {
+     "label": "policy.ts:167-212 - settingsPolicy().gate",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/policy.ts#L167-L212",
+     "line": 167
+    },
+    {
+     "label": "policy.ts:111-127 - POLICY_REVISION, policyVersion",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/policy.ts#L111-L127",
+     "line": 111
+    }
+   ]
+  },
+  {
+   "id": "assessor",
+   "step": 9,
+   "label": "Assessor",
+   "sub": "app/assessment.ts - core port",
+   "x": 720,
+   "y": 410,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "MasterAssessor implements the core Assessor port: candidate cards reach the main Session through the durable assessment effect, the Eval deadline starts on delivery, and decide converts the Session assessment into Engine.decide.",
+   "links": [
+    {
+     "label": "assessment.ts:85-115 - MasterAssessor",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/assessment.ts#L85-L115",
+     "line": 85
+    },
+    {
+     "label": "assessment.ts:265-282 - decide -> Engine.decide",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/assessment.ts#L265-L282",
+     "line": 265
+    },
+    {
+     "label": "policy.ts:30-66 - assessment validation",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/policy.ts#L30-L66",
+     "line": 30
+    }
+   ]
+  },
+  {
+   "id": "executor",
+   "step": 10,
+   "label": "DshExecutor",
+   "sub": "src/executor/dsh.ts",
+   "x": 1070,
+   "y": 280,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Runs Assignments in DeepSeek Harness: one persistent worker Session and one directory per Ticket, prepare command with a 10-minute timeout (failure is not auto-retried), interrupted Assignments reconciled oldest first on restart.",
+   "links": [
+    {
+     "label": "dsh.ts:1-35 - one worker Session per Ticket",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L1-L35",
+     "line": 1
+    },
+    {
+     "label": "dsh.ts:518-540 - resume on restart",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L518-L540",
+     "line": 518
+    }
+   ]
+  },
+  {
+   "id": "mainsession",
+   "step": 11,
+   "label": "Main Session / router",
+   "sub": "src/app/sessions.ts",
+   "x": 1070,
+   "y": 540,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "The router Session inside dsh: it routes, never implements. Its orchestrator tools issue Engine commands - route (accept / attach / stop / ignore), reply, retry, requeue, eval - each in its own transaction.",
+   "links": [
+    {
+     "label": "tools/main.ts:155-301 - main Session tools",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/tools/main.ts#L155-L301",
+     "line": 155
+    },
+    {
+     "label": "tools/main.ts:122-154 - orchestrator_route",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/tools/main.ts#L122-L154",
+     "line": 122
+    },
+    {
+     "label": "orchestrator.md:1-16 - route, never implement",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/prompts/orchestrator.md#L1-L16",
+     "line": 1
+    }
+   ]
+  },
+  {
+   "id": "workers",
+   "step": 12,
+   "label": "Worker Sessions in dsh",
+   "sub": "DeepSeek Harness sessions",
+   "x": 1070,
+   "y": 410,
+   "w": 240,
+   "h": 96,
+   "grade": "verified",
+   "excerpt": "Borrowed loop (teardown #15): worker-<ticketId> Sessions in DeepSeek Harness, danger-full-access, foreground shell backgrounds after 5s, background jobs capped at 30 minutes. Workers report progress, waiting, ready, blocked or failed.",
+   "links": [
+    {
+     "label": "cordis.patch.yml:35-75 - worker preset, 5s shell",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/cordis.patch.yml#L35-L75",
+     "line": 35
+    },
+    {
+     "label": "dsh.ts:601-673 - 30 min background limit",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L601-L673",
+     "line": 601
+    },
+    {
+     "label": "background.ts:1-40 - shell jobs and subagents",
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/background.ts#L1-L40",
+     "line": 1
+    }
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "from": "github",
+   "to": "engine",
+   "label": "events -> Triggers"
+  },
+  {
+   "from": "feishu",
+   "to": "engine",
+   "label": "messages -> Triggers"
+  },
+  {
+   "from": "panel",
+   "to": "engine",
+   "label": "commands: stop / retry"
+  },
+  {
+   "from": "runtime",
+   "to": "passes",
+   "label": "starts the pump"
+  },
+  {
+   "from": "passes",
+   "to": "engine",
+   "label": "evaluateDue()"
+  },
+  {
+   "from": "engine",
+   "to": "store",
+   "label": "one transaction per command"
+  },
+  {
+   "from": "engine",
+   "to": "assessor",
+   "label": "candidate eval request"
+  },
+  {
+   "from": "policy",
+   "to": "assessor",
+   "label": "rules for prompt",
+   "label_dx": -48,
+   "label_dy": 16
+  },
+  {
+   "from": "engine",
+   "to": "executor",
+   "label": "assignments",
+   "label_dx": -32
+  },
+  {
+   "from": "executor",
+   "to": "workers",
+   "label": "spawns worker-<ticketId>"
+  },
+  {
+   "from": "mainsession",
+   "to": "engine",
+   "label": "decide / attach / reply"
+  },
+  {
+   "from": "engine",
+   "to": "github",
+   "label": "outbox replies"
+  },
+  {
+   "from": "engine",
+   "to": "feishu",
+   "label": "outbox replies"
+  }
+ ]
+}
