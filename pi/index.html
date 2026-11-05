@@ -150,7 +150,7 @@ tool result in a batch setting <code>terminate: true</code>, a <code>finishTurn<
 hitting Ctrl+C (<code>AbortController</code>).<sup id="fnref:11"><a class="footnote-ref" href="#fn:11">11</a></sup> pi trusts the model's stop behavior
 the way a REPL trusts EOF.</p>
 <p>That's a deliberate trust model, not an oversight — and it's the kind of
-decision to steal or reject consciously. Anyone who wants a cap can add one
+decision to adopt or reject consciously. Anyone who wants a cap can add one
 in a <code>finishTurn</code> hook without forking the loop, so the core never has to
 know what "too many iterations" means for your deployment.<sup id="fnref2:11"><a class="footnote-ref" href="#fn:11">11</a></sup> The price is
 real: a misbehaving model burns tokens until the user aborts. pi's bet is
@@ -410,7 +410,7 @@ built-in extensions (the latter two inactive until enabled), so the <em>core</em
 is minimal while the default install is somewhat broader.<sup id="fnref2:50"><a class="footnote-ref" href="#fn:50">50</a></sup></p>
 <p>Read the omissions as the other half of the thesis: every "missing" feature
 is a decision to keep the core's surface area small and let the extension
-layer — or the model itself — carry the weight. Steal the pattern when your
+layer — or the model itself — carry the weight. Adopt the pattern when your
 harness needs to stay hackable; reject it when your users need guardrails
 out of the box.</p>
 <h2 id="comparison-matrix-row">Comparison matrix row</h2>
