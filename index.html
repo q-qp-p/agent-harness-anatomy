@@ -336,7 +336,7 @@
   </div>
 
   <div class="article" id="dsh-superagent">
-    <h2>#29 &mdash; dsh-superagent: the agent that decides whether to act</h2>
+    <h2>#20 &mdash; dsh-superagent: the agent that decides whether to act</h2>
     <p>DeepSeek's proactive agent for one GitHub repository, shipped as a bundle for DeepSeek Harness (teardown #15): it polls GitHub &mdash; and optionally Feishu &mdash; and turns what it notices into Triggers, but nothing runs on a notice alone. A deterministic Policy gate classifies every request (who asked, whether they addressed the agent, whether they are listed), and only inferred candidates reach an assessor Session for judgement; in the default observe mode an inferred accept is recorded as <code>would_accept</code> and creates nothing. An accept mints a Ticket and an immutable Mandate &mdash; the record of why this work may act &mdash; in a single transaction, and each Ticket runs in its own dsh worker Session, at full access and without a per-command approval. Progress stays on the Ticket; people hear only an acknowledgement, a question, a result or an attention request, each sent under its own rule. And a Ticket does not end when its worker says ready: it ends when the threads it follows close, so the merged pull request is the ground truth of done.</p>
     <div class="links">
       <a class="primary" href="dsh-superagent/trace.html">Step through a live turn</a>

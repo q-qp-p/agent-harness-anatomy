@@ -35,7 +35,7 @@ By **David P. S. Marques** — [LinkedIn](https://ca.linkedin.com/in/dpsmarques)
 | 17 | Grok Build (2bdd1d6) | [grok-build/article.md](grok-build/article.md) | [Read on Substack](https://agentharnessanatomy.substack.com/p/grok-build-the-harness-whose-control) |
 | 18 | Harness² (1cfe254) | [harness2/article.md](harness2/article.md) | [Read on Substack](https://agentharnessanatomy.substack.com/p/harness-the-harness-is-the-thing) |
 | 19 | Agensh (v1.0) | [agensh/article.md](agensh/article.md) | [Read on Substack](https://agentharnessanatomy.substack.com/p/agensh-the-orchestrator-is-a-prompt) |
-| 29 | dsh-superagent (v0.1.0) | [dsh-superagent/article.md](dsh-superagent/article.md) | forthcoming |
+| 20 | dsh-superagent (v0.1.0) | [dsh-superagent/article.md](dsh-superagent/article.md) | forthcoming |
 
 ## Embedded Harness Anatomy
 
