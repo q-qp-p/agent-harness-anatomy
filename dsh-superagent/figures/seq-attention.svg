@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 960" width="1600" font-family="system-ui, -apple-system, sans-serif">
+<defs><marker id="arrc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#d08c4e"/></marker><marker id="arrr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#8a7a66"/></marker></defs>
+<rect x="0" y="0" width="1600" height="960" fill="#f7f2e9"/>
+<text x="110.3448275862069" y="44" font-size="26" font-weight="700" fill="#000000">Attention - a worker question reaches a person</text>
+<text x="110.3448275862069" y="74" font-size="15" fill="#000000">the question parks the Ticket at the person stage; the answer returns as an Input, retried from 2s doubling to 1 min</text>
+<line x1="283" y1="110" x2="283" y2="877" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="138" y="82" width="290" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="283" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Worker (dsh)</text>
+<line x1="628" y1="110" x2="628" y2="877" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="483" y="82" width="290" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="628" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Engine</text>
+<line x1="972" y1="110" x2="972" y2="877" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="828" y="82" width="290" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="972" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Panel</text>
+<line x1="1317" y1="110" x2="1317" y2="877" stroke="#3a2f26" stroke-width="2" stroke-dasharray="8 6"/>
+<rect x="1172" y="82" width="290" height="56" rx="10" fill="#ffffff" stroke="#3a2f26" stroke-width="1.5"/>
+<text x="1317" y="116" text-anchor="middle" font-size="16" font-weight="600" fill="#000000">Person</text>
+<line x1="283" y1="232" x2="618" y2="232" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="377" cy="218" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="377" y="223" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">1</text>
+<text x="395" y="223" font-size="14" fill="#000000">report: question for the person</text>
+<path d="M 628 306 h 61 v 36 H 638" fill="none" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="658" cy="290" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="658" y="295" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">2</text>
+<text x="698" y="311" font-size="14" fill="#000000">Ticket stage: attention</text>
+<line x1="628" y1="381" x2="962" y2="381" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="722" cy="367" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="722" y="372" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">3</text>
+<text x="740" y="372" font-size="14" fill="#000000">surface question (person stage)</text>
+<line x1="972" y1="455" x2="1307" y2="455" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="1067" cy="441" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="1067" y="446" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">4</text>
+<text x="1085" y="446" font-size="14" fill="#000000">question shown in the panel</text>
+<line x1="1317" y1="530" x2="982" y2="530" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="1067" cy="516" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="1067" y="521" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">5</text>
+<text x="1085" y="521" font-size="14" fill="#000000">answer</text>
+<line x1="972" y1="604" x2="638" y2="604" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="722" cy="590" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="722" y="595" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">6</text>
+<text x="740" y="595" font-size="14" fill="#000000">answer submitted</text>
+<path d="M 628 679 h 61 v 36 H 638" fill="none" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="658" cy="663" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="658" y="668" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">7</text>
+<text x="698" y="684" font-size="14" fill="#000000">input delivery: retry 2s, doubling to 1 min</text>
+<line x1="628" y1="753" x2="293" y2="753" stroke="#d08c4e" stroke-width="2" marker-end="url(#arrc)"/>
+<circle cx="377" cy="739" r="11" fill="#ffffff" stroke="#d08c4e" stroke-width="1.5"/>
+<text x="377" y="744" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">8</text>
+<text x="395" y="744" font-size="14" fill="#000000">deliver Input (the answer)</text>
+<line x1="283" y1="828" x2="618" y2="828" stroke="#8a7a66" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrr)"/>
+<circle cx="377" cy="814" r="11" fill="#ffffff" stroke="#8a7a66" stroke-width="1.5"/>
+<text x="377" y="819" text-anchor="middle" font-size="12" font-weight="700" fill="#000000">9</text>
+<text x="395" y="819" font-size="14" fill="#000000">ack: input received</text>
+</svg>

@@ -1,0 +1,58 @@
+{
+ "title": "Attention - a worker question reaches a person",
+ "subtitle": "the question parks the Ticket at the person stage; the answer returns as an Input, retried from 2s doubling to 1 min",
+ "participants": [
+  "Worker (dsh)",
+  "Engine",
+  "Panel",
+  "Person"
+ ],
+ "messages": [
+  {
+   "from": 0,
+   "to": 1,
+   "label": "report: question for the person"
+  },
+  {
+   "from": 1,
+   "to": 1,
+   "label": "Ticket stage: attention"
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "label": "surface question (person stage)"
+  },
+  {
+   "from": 2,
+   "to": 3,
+   "label": "question shown in the panel"
+  },
+  {
+   "from": 3,
+   "to": 2,
+   "label": "answer"
+  },
+  {
+   "from": 2,
+   "to": 1,
+   "label": "answer submitted"
+  },
+  {
+   "from": 1,
+   "to": 1,
+   "label": "input delivery: retry 2s, doubling to 1 min"
+  },
+  {
+   "from": 1,
+   "to": 0,
+   "label": "deliver Input (the answer)"
+  },
+  {
+   "from": 0,
+   "to": 1,
+   "label": "ack: input received",
+   "dashed": true
+  }
+ ]
+}

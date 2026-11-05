@@ -1,0 +1,67 @@
+{
+ "title": "Admission - a comment becomes a Ticket",
+ "subtitle": "receive stores once; the gate and the Assessor decide; Ticket, Mandate and Assignment land in one transaction",
+ "participants": [
+  "Person",
+  "GitHub Source",
+  "Engine",
+  "Policy",
+  "Assessor",
+  "Outbox"
+ ],
+ "messages": [
+  {
+   "from": 0,
+   "to": 1,
+   "label": "posts a comment on an issue"
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "label": "receive(Trigger): stable id, human, addressed"
+  },
+  {
+   "from": 2,
+   "to": 2,
+   "label": "store once; fan out; queue an Eval"
+  },
+  {
+   "from": 2,
+   "to": 3,
+   "label": "gate(trigger): admission table"
+  },
+  {
+   "from": 3,
+   "to": 2,
+   "label": "inferred candidate",
+   "dashed": true
+  },
+  {
+   "from": 2,
+   "to": 4,
+   "label": "request(candidate): card via durable effect"
+  },
+  {
+   "from": 4,
+   "to": 2,
+   "label": "decide: accept - rule matched, intent evidence",
+   "dashed": true
+  },
+  {
+   "from": 2,
+   "to": 2,
+   "label": "Ticket + Mandate + Assignment, atomically"
+  },
+  {
+   "from": 2,
+   "to": 5,
+   "label": "enqueue acknowledgement"
+  },
+  {
+   "from": 5,
+   "to": 1,
+   "label": "reply effect: send acknowledgement",
+   "dashed": true
+  }
+ ]
+}

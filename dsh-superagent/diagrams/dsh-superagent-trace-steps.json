@@ -1,0 +1,215 @@
+{
+ "example_input": "@dsh-superagent please fix the failing parser test on main",
+ "note": "A maintainer's comment on a watched issue traced through the GitHub Source, Intake, an admission Eval, the Mandate and Ticket it creates, the worker Session that does the work, and the result that returns to the same conversation.",
+ "repo": "https://github.com/deepseek-ai/dsh-superagent-prototype",
+ "sha": "6337fc823ce20251c8de8085948165c81aaa701e",
+ "steps": [
+  {
+   "code": "github-trigger.ts:55",
+   "modules": [
+    {
+     "file": "src/sources/github-trigger.ts:55",
+     "label": "github-trigger.ts:55 - Trigger translation: stable ids, human, addressed",
+     "line": 55,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github-trigger.ts#L55-L108"
+    },
+    {
+     "file": "src/sources/github.ts:274",
+     "label": "github.ts:274 - the polling round, in order",
+     "line": 274,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github.ts#L274-L296"
+    }
+   ],
+   "narrative": "The GitHub Source's poll round (notifications, repository streams, open-Ticket PRs, subscribed Threads) picks up the maintainer's comment. Translation gives it a stable Trigger id, a primary Thread (the issue), human: true from the account type, and addressed: true because the text mentions the agent's login. Nothing has been decided yet - the Trigger is just an honest record of what happened.",
+   "node": "github",
+   "representation": "Trigger {\n  id: gh:issue:412:comment:88,\n  primaryThread: issue 412,\n  actor: maintainer, human: true,\n  addressed: true  // mentions the agent login\n}",
+   "step": 1,
+   "title": "The comment becomes a Trigger"
+  },
+  {
+   "code": "intake.ts:16",
+   "modules": [
+    {
+     "file": "src/core/intake.ts:16",
+     "label": "intake.ts:16 - Intake.receive: dedup, scope, fan-out, Eval queuing",
+     "line": 16,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/intake.ts#L16-L63"
+    },
+    {
+     "file": "src/core/engine.ts:40",
+     "label": "engine.ts:40 - Engine.receive",
+     "line": 40,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts#L40-L55"
+    }
+   ],
+   "narrative": "Engine.receive hands the Trigger to Intake, which stores it exactly once (a redelivery is answered 'duplicate'), records it on its Threads and their correlations, and fans it out to Tickets subscribed to those Threads - none yet for a new issue. Because no worker owns this follow-up, the Trigger is queued for Eval on its primary Thread.",
+   "node": "engine",
+   "representation": "receive(trigger)\n  -> stored (dedup by Trigger id)\n  -> fan-out to subscribed Tickets: []\n  -> queue for Eval on Thread(issue 412)",
+   "step": 2,
+   "title": "Intake stores it once and fans it out"
+  },
+  {
+   "code": "passes.ts:28",
+   "modules": [
+    {
+     "file": "src/app/passes.ts:22",
+     "label": "passes.ts:22 - the 2 s serialized pump",
+     "line": 22,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/passes.ts#L22-L69"
+    },
+    {
+     "file": "src/core/engine.ts:65",
+     "label": "engine.ts:65 - Engine.evaluateDue",
+     "line": 65,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts#L65-L90"
+    }
+   ],
+   "narrative": "Passes run every two seconds and on demand, serialized so at most one runs at a time: due effects first, then Engine.evaluateDue. It expires or requeues stale Evals, resumes paused Tickets the current Policy admits, and starts an Eval for the issue's Thread, batching its waiting Triggers.",
+   "node": "passes",
+   "representation": "every 2 s (and on request):\n  effects.kick()\n  engine.evaluateDue()\n    -> start Eval for Thread(issue 412)",
+   "step": 3,
+   "title": "A pass finds the Thread due"
+  },
+  {
+   "code": "evals.ts:71",
+   "modules": [
+    {
+     "file": "src/core/evals.ts:71",
+     "label": "evals.ts:71 - Evals.start: batching, gate, assessor.request",
+     "line": 71,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/evals.ts#L71-L130"
+    },
+    {
+     "file": "src/app/assessment.ts:85",
+     "label": "assessment.ts:85 - MasterAssessor delivery via the assessment effect",
+     "line": 85,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/assessment.ts#L85-L115"
+    },
+    {
+     "file": "src/policy.ts:167",
+     "label": "policy.ts:167 - settingsPolicy().gate, in precedence order",
+     "line": 167,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/policy.ts#L167-L212"
+    }
+   ],
+   "narrative": "Evals.start classifies the Trigger through the Policy gate: a listed person addressing the agent is the strongest class and is judged on its own. The candidate card is delivered to the main Session through a durable effect - delivery starts the Eval's deadline (default 120 s) - and the MasterAssessor judges it from the Trigger's stored text. It fetches nothing: the record it sees is the record that was stored.",
+   "node": "assessor",
+   "representation": "gate(trigger) = addressed (listed, human)\nassessor.request(candidate)\n  deadline starts on delivery: 120 s\n  judgement: accept | stop | ignore",
+   "step": 4,
+   "title": "The gate classifies, the assessor judges"
+  },
+  {
+   "code": "tickets.ts:29",
+   "modules": [
+    {
+     "file": "src/core/tickets.ts:29",
+     "label": "tickets.ts:29 - Tickets.create, one transaction",
+     "line": 29,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/tickets.ts#L29-L70"
+    },
+    {
+     "file": "src/core/model.ts:96",
+     "label": "model.ts:96 - Mandate and MandateBasis",
+     "line": 96,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/model.ts#L96-L140"
+    },
+    {
+     "file": "src/app/outbox.ts:18",
+     "label": "outbox.ts:18 - receipt first, then the reply effect",
+     "line": 18,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/outbox.ts#L18-L52"
+    }
+   ],
+   "narrative": "The assessor's accept becomes Engine.decide, and Tickets.create writes everything in one transaction: the Ticket, its Mandate (basis: addressed, stamped with the Policy revision), its Subscriptions, and its first Assignment. The acknowledgement is queued through the Outbox - receipt persisted first - and the Executor is told to start. All of it commits, or none of it does.",
+   "node": "engine",
+   "representation": "one transaction:\n  Ticket + Mandate{via: addressed}\n  + Subscriptions + Assignment#1\n  + outbox.acknowledge()\n  + executor.start(ticket)",
+   "step": 5,
+   "title": "Accept mints the Mandate and the Ticket, atomically"
+  },
+  {
+   "code": "dsh.ts:240",
+   "modules": [
+    {
+     "file": "src/executor/dsh.ts:1",
+     "label": "dsh.ts:1 - DshExecutor: one Session and directory per Ticket",
+     "line": 1,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L1-L35"
+    },
+    {
+     "file": "src/executor/dsh.ts:240",
+     "label": "dsh.ts:240 - the prepare command and PrepareFailed",
+     "line": 240,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts#L240-L275"
+    },
+    {
+     "file": "src/app/sessions.ts:137",
+     "label": "sessions.ts:137 - Sessions.ensure sets danger-full-access",
+     "line": 137,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/sessions.ts#L137-L155"
+    }
+   ],
+   "narrative": "DshExecutor creates Session worker-<ticketId> and a fresh directory for the Ticket, running the team's prepare command first (10-minute cap; a failed prepare is recorded, not retried). Sessions.ensure sets the preset the code names danger-full-access: the worker runs as the operator's OS user, without an approval step. A Ticket directory and Session are reused across the Ticket's Assignments.",
+   "node": "executor",
+   "representation": "session: worker-<ticketId>\n  dir: <stateDir>/work/<ticket name>\n  prepare command (<= 10 min)\n  preset: danger-full-access",
+   "step": 6,
+   "title": "A worker Session starts in the Ticket's own directory"
+  },
+  {
+   "code": "background.ts:1",
+   "modules": [
+    {
+     "file": "cordis.patch.yml:35",
+     "label": "cordis.patch.yml:35 - worker preset: 5 s shell backgrounding",
+     "line": 35,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/cordis.patch.yml#L35-L75"
+    },
+    {
+     "file": "src/executor/background.ts:1",
+     "label": "background.ts:1 - shell jobs and subagents keep the worker busy",
+     "line": 1,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/background.ts#L1-L40"
+    },
+    {
+     "file": "src/app/tools/executor.ts:75",
+     "label": "executor.ts:75 - orchestrator_report: claim the PR, record the report",
+     "line": 75,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/tools/executor.ts#L75-L105"
+    }
+   ],
+   "narrative": "Inside its dsh Session - the borrowed turn loop from teardown #15 - the worker investigates and edits. The worker preset moves a foreground shell command to a background job after 5 seconds, so the Session can take the next message instead of blocking on a test run. When a turn ends with jobs still running, the Ticket keeps its worker slot; background work gets at most 30 minutes per turn. Progress reports stay on the Ticket - they do not become messages to the maintainer.",
+   "node": "workers",
+   "representation": "worker turn (dsh loop):\n  shell > 5 s -> background job\n  turn ends, jobs running -> slot kept\n  background limit: 30 min per turn\n  report(progress) -> stays on the Ticket",
+   "step": 7,
+   "title": "Work runs; long shells move to the background"
+  },
+  {
+   "code": "assignments.ts:95",
+   "modules": [
+    {
+     "file": "src/core/assignments.ts:95",
+     "label": "assignments.ts:95 - Assignments.report and followsDone",
+     "line": 95,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/assignments.ts#L95-L140"
+    },
+    {
+     "file": "src/sources/github-pull.ts:30",
+     "label": "github-pull.ts:30 - a PR binds to a Ticket by origin or branch",
+     "line": 30,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/sources/github-pull.ts#L30-L70"
+    },
+    {
+     "file": "src/core/replies.ts:18",
+     "label": "replies.ts:18 - the four gated reply kinds",
+     "line": 18,
+     "url": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/replies.ts#L18-L95"
+    }
+   ],
+   "narrative": "The worker opens its pull request - bound to the Ticket because it is agent-authored on the Ticket's branch - and reports ready. The Ticket does not end on the report alone: it ends when the Threads it follows are done, so the PR merging (or closing) is what closes the Ticket, as merged or closed. The result reply goes through the Outbox to the original issue conversation, the only kind of channel write the core can make, gated by its own rule.",
+   "node": "engine",
+   "representation": "report(ready, pr claimed)\n  Ticket ends when followsDone:\n    every opened Thread closed\n  -> outcome: merged | closed\n  outbox: result -> issue 412",
+   "step": 8,
+   "title": "Ready is a claim; the merged PR is the proof"
+  }
+ ],
+ "title": "One request, end to end: an issue comment becomes a pull request"
+}

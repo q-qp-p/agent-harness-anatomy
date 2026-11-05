@@ -1,0 +1,66 @@
+{
+ "title": "Follow-ups - the owning worker decides",
+ "subtitle": "a person's follow-up on a followed Thread bypasses Eval; closing the Thread ends the Ticket once its follows are done",
+ "participants": [
+  "Person",
+  "GitHub Source",
+  "Engine",
+  "Ticket",
+  "Worker (dsh)"
+ ],
+ "messages": [
+  {
+   "from": 0,
+   "to": 1,
+   "label": "follow-up comment on the PR thread"
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "label": "receive(Trigger) on followed Thread"
+  },
+  {
+   "from": 2,
+   "to": 2,
+   "label": "fan out to subscribed Tickets"
+  },
+  {
+   "from": 2,
+   "to": 3,
+   "label": "deliver follow-up to owning Ticket"
+  },
+  {
+   "note": "ownership",
+   "span": [
+    2,
+    4
+   ],
+   "text": "a person's follow-up bypasses Eval - the owning worker decides it"
+  },
+  {
+   "from": 2,
+   "to": 4,
+   "label": "attach: resume with follow-up input"
+  },
+  {
+   "from": 0,
+   "to": 1,
+   "label": "closes the PR (merged / closed)"
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "label": "receive(Trigger): thread closed"
+  },
+  {
+   "from": 2,
+   "to": 3,
+   "label": "followsDone: every follow complete"
+  },
+  {
+   "from": 3,
+   "to": 3,
+   "label": "Ticket ends (merged / closed)"
+  }
+ ]
+}

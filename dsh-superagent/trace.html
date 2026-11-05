@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One request through dsh-superagent — step-by-step · Agent Harness Anatomy</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    background: #161210; color: #ece1d3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.7; padding: 48px 24px; margin: 0;
+  }
+  main { max-width: 960px; margin: 0 auto; }
+  a { color: #d08c4e; }
+  .topnav { font-size: 0.9rem; margin-bottom: 32px; }
+  .topnav a { color: #a89880; text-decoration: none; }
+  .topnav a:hover { color: #ece1d3; }
+  .topnav .sep { color: #5a4c3e; margin: 0 8px; }
+  h1 { font-size: 1.8rem; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sub { color: #a89880; margin-bottom: 28px; max-width: 640px; }
+  .input-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .input-row label { color: #a89880; font-size: 0.95rem; }
+  .input-row input {
+    flex: 1; min-width: 240px; background: #1f1a15; border: 1px solid #3a2f26;
+    border-radius: 8px; color: #ece1d3; padding: 10px 14px; font-size: 0.95rem;
+    font-family: inherit;
+  }
+  .input-row input:focus { outline: none; border-color: #d08c4e; }
+  .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 24px; }
+  .controls button {
+    background: #1f1a15; border: 1px solid #3a2f26; color: #ece1d3;
+    border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer;
+    font-family: inherit; font-weight: 600;
+  }
+  .controls button:hover { border-color: #a89880; }
+  .controls button.primary { background: #d08c4e; border-color: #d08c4e; color: #161210; }
+  .controls button.primary:hover { background: #e0a266; }
+  .counter { color: #a89880; font-size: 0.9rem; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .trace { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
+  .rail { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .rail li {
+    border: 1px solid #2c231b; border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; display: flex; gap: 10px; align-items: baseline;
+    background: transparent;
+  }
+  .rail li:hover { border-color: #a89880; }
+  .rail li.current { border-color: #d08c4e; background: #1f1a15; }
+  .rail .num {
+    color: #8a7a66; font-size: 0.8rem; font-variant-numeric: tabular-nums;
+    min-width: 16px;
+  }
+  .rail li.current .num { color: #d08c4e; font-weight: 700; }
+  .rail .t { font-size: 0.92rem; }
+  .detail {
+    border: 1px solid #3a2f26; border-radius: 12px; padding: 28px;
+    background: #1f1a15; min-height: 420px;
+  }
+  .step-head { display: flex; gap: 14px; align-items: baseline; margin-bottom: 12px; }
+  .step-head .n {
+    color: #d08c4e; font-weight: 700; font-size: 0.85rem;
+    border: 1px solid #d08c4e; border-radius: 6px; padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .step-head h2 { font-size: 1.3rem; margin: 0; }
+  .node-tag {
+    display: inline-block; margin-top: 6px; font-size: 0.8rem; color: #a89880;
+    border: 1px solid #3a2f26; border-radius: 20px; padding: 2px 10px;
+  }
+  .node-tag b { color: #ece1d3; font-weight: 600; }
+  #dInputLine {
+    margin: 14px 0 4px; padding: 10px 14px; background: #161210;
+    border: 1px solid #3a2f26; border-radius: 8px; font-size: 0.92rem;
+  }
+  #dInputLine .k { color: #a89880; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+  .cols h3 {
+    font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #a89880; margin: 0 0 10px; font-weight: 600;
+  }
+  pre {
+    background: #161210; border: 1px solid #3a2f26; border-radius: 8px;
+    padding: 14px; overflow-x: auto; margin: 0; font-size: 0.82rem; line-height: 1.55;
+  }
+  pre code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #ece1d3; background: none; padding: 0;
+  }
+  #dModules { list-style: none; padding: 0; margin: 0; }
+  #dModules li { margin-bottom: 8px; font-size: 0.9rem; }
+  #dModules .file { display: block; color: #8a7a66; font-size: 0.78rem;
+    font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .loopnote {
+    margin-top: 20px; padding: 12px 16px; border-left: 3px solid #d08c4e;
+    background: #161210; border-radius: 0 8px 8px 0; font-size: 0.92rem;
+    color: #a89880;
+  }
+  .loopnote:empty { display: none; }
+  .loopnote b { color: #ece1d3; }
+  .loopmap { margin-top: 36px; border: 1px solid #2c231b; border-radius: 12px; padding: 24px; }
+  .loopmap h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #a89880; margin: 0 0 16px; }
+  .flow { display: flex; flex-direction: column; margin-bottom: 6px; }
+  .vstep { display: flex; gap: 14px; align-items: stretch; }
+  .vrail { display: flex; flex-direction: column; align-items: center; flex: 0 0 16px; }
+  .vdot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #8a7a66;
+          margin-top: 6px; flex: 0 0 auto; }
+  .vdot.hot { border-color: #d08c4e; background: #d08c4e; }
+  .vline { width: 2px; flex: 1; background: #3a2f26; min-height: 16px; }
+  .vbody { padding: 2px 0 16px; }
+  .vstep:last-child .vbody { padding-bottom: 2px; }
+  .chip {
+    border: 1px solid #3a2f26; border-radius: 20px; padding: 4px 12px;
+    font-size: 0.82rem; background: #1f1a15; white-space: nowrap;
+  }
+  .chip.hot { border-color: #d08c4e; color: #d08c4e; }
+  .arrow { color: #8a7a66; }
+  .ret {
+    margin: 2px 0 14px 8px; padding-left: 16px; border-left: 2px solid #d08c4e;
+    font-size: 0.88rem; color: #a89880;
+  }
+  .ret b { color: #ece1d3; }
+  footer { margin-top: 48px; color: #8a7a66; font-size: 0.85rem; }
+  @media (max-width: 760px) {
+    .trace { grid-template-columns: 1fr; }
+    .rail { flex-direction: row; overflow-x: auto; padding-bottom: 8px; }
+    .rail li { flex: 0 0 auto; }
+    .cols { grid-template-columns: 1fr; }
+    .detail { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <nav class="topnav"><a href="../#dsh-superagent">&larr; Agent Harness Anatomy</a><span class="sep">/</span><a href="./">dsh-superagent: the agent that decides whether to act</a></nav>
+  <h1 id="pageTitle">One request, end to end — dsh-superagent</h1>
+  <p class="sub" id="pageSub"></p>
+
+  <div class="input-row">
+    <label for="userInput">Trace it with your own input:</label>
+    <input id="userInput" type="text" value="" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" aria-label="Previous step">&larr; Prev</button>
+    <button id="playBtn" class="primary" aria-label="Play or pause">&#9654; Play</button>
+    <button id="nextBtn" aria-label="Next step">Next &rarr;</button>
+    <span class="counter" id="counter"></span>
+  </div>
+
+  <div class="trace">
+    <ol class="rail" id="rail"></ol>
+    <section class="detail" aria-live="polite">
+      <div class="step-head">
+        <span class="n" id="dNum"></span>
+        <div>
+          <h2 id="dTitle"></h2>
+          <span class="node-tag">architecture node: <b id="dNode"></b></span>
+        </div>
+      </div>
+      <div id="dInputLine" hidden><span class="k">User input:</span> <span id="dInputVal"></span></div>
+      <p id="dNarrative"></p>
+      <div class="cols">
+        <div>
+          <h3>Representation at this boundary</h3>
+          <pre><code id="dRepr"></code></pre>
+        </div>
+        <div>
+          <h3>Source modules</h3>
+          <ul id="dModules"></ul>
+        </div>
+      </div>
+      <div class="loopnote" id="dLoop"></div>
+    </section>
+  </div>
+
+  <section class="loopmap">
+    <h3>Loop map</h3>
+    <div class="flow" id="flowMain"></div>
+<div class="ret"><b>One request</b> &mdash; a maintainer's comment is polled into a Trigger &rarr; Intake stores it once and fans it out &rarr; the next pass starts an Eval &rarr; the gate classifies it and the assessor judges it &rarr; accept creates the Ticket, its Mandate and its first Assignment in one transaction &rarr; the Executor starts <code>worker-&lt;ticketId&gt;</code> in the Ticket's own directory &rarr; the worker reports ready with a pull request &rarr; the Ticket ends when the PR closes &rarr; the result returns to the conversation the request came from.</div>
+    <div class="flow" id="flowBranch"></div>
+<div class="ret"><b>Two judgement layers</b> &mdash; the gate is deterministic code (who asked, whether they addressed the agent, whether they are listed), and only inferred candidates ever reach the assessor Session. In the default <code>observe</code> mode, an inferred accept is recorded as <code>would_accept</code> and creates nothing: the system first proves what it would do.</div>
+<div class="ret" style="border-color:#d08c4e"><b>Nothing is decided twice</b> &mdash; Triggers are stored once and deduplicated by id, outbound sends are receipted before they are queued and idempotent at the platform, and side effects are durable effects in the same SQLite file as the state they serve. A restart reconciles interrupted Assignments with a recovery note instead of replaying history.</div>
+</section>
+
+  <footer>Simplified shapes of real dsh-superagent events, prompts and records, not verbatim runtime dumps. All module links pin <span id="sha"></span>.</footer>
+</main>
+
+<script>
+(function () {
+  var LOOP_NOTES = {
+    1: "<b>Polling, not webhooks.</b> The Source polls on an interval with durable per-Thread cursors, and its translation declares the two facts the whole admission system rests on: whether the actor is human, and whether the message addresses the agent.",
+    2: "<b>Stored once.</b> A Trigger id is a dedup key: a redelivery is answered, not reprocessed. Fan-out to subscribed Tickets happens here, before any evaluation, so live work hears about new events first.",
+    3: "<b>The two-second heartbeat.</b> Passes are serialized and coalesced - at most one runs at a time - and they drain the durable effect queue before evaluating, so delivery of earlier decisions precedes new ones.",
+    4: "<b>Judgement over a fixed record.</b> The assessor fetches nothing and re-checks nothing: it judges the Trigger text the Source stored. The Eval deadline (default 120 s) starts when the candidate is delivered, not when it was queued.",
+    5: "<b>Authorization is minted, not checked.</b> Accept creates the Mandate - basis, Policy revision, scope - in the same transaction as the Ticket and its first Assignment. A later stop withdraws the Mandate, and that is what ends the authority to work.",
+    6: "<b>Capability without a dialog.</b> Worker Sessions run at danger-full-access as the operator's OS user. The design's containment is upstream (admission) and supervisory (the Engine), not a per-command approval.",
+    7: "<b>Progress is not a message.</b> Progress reports stay on the Ticket, where the panel shows them; the maintainer hears an acknowledgement, a question, or a result - each only under its own rule. That is the attention budget, enforced by the Replies part.",
+    8: "<b>The PR is the proof.</b> A ready report is a claim. The Ticket ends on followsDone - every Thread it opened closed - so a merged pull request, not the worker's word, is the ground truth of completion."
+  };
+  var FLOW_MAIN = [1,2,3,4,5,6,7,8], FLOW_BRANCH = [];
+
+  var data, idx = 0, timer = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var rail = $("rail"), userInput = $("userInput");
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderFlow(el, steps, hot) {
+    el.innerHTML = steps.map(function (n, i) {
+      var s = data.steps[n - 1];
+      var last = i === steps.length - 1;
+      var dot = '<span class="vdot' + (n === hot ? ' hot' : '') + '"></span>';
+      var line = last ? '' : '<span class="vline"></span>';
+      var chip = '<span class="chip' + (n === hot ? ' hot' : '') + '">' + n + ' &middot; ' + esc(s.title) + '</span>';
+      return '<div class="vstep"><div class="vrail">' + dot + line + '</div>' +
+             '<div class="vbody">' + chip + '</div></div>';
+    }).join("");
+  }
+
+  function buildRail() {
+    rail.innerHTML = "";
+    data.steps.forEach(function (s, i) {
+      var li = document.createElement("li");
+      li.innerHTML = '<span class="num">' + s.step + '</span><span class="t"></span>';
+      li.querySelector(".t").textContent = s.title;
+      li.addEventListener("click", function () { stop(); go(i); });
+      rail.appendChild(li);
+    });
+  }
+
+  function go(i) {
+    idx = Math.max(0, Math.min(data.steps.length - 1, i));
+    var s = data.steps[idx];
+    Array.prototype.forEach.call(rail.children, function (li, j) {
+      li.classList.toggle("current", j === idx);
+    });
+    var cur = rail.children[idx];
+    if (cur) cur.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    $("dNum").textContent = "Step " + s.step;
+    $("dTitle").textContent = s.title;
+    $("dNode").textContent = s.node;
+    if (idx === 0) {
+      $("dInputLine").hidden = false;
+      $("dInputVal").textContent = "\u201c" + userInput.value + "\u201d";
+    } else {
+      $("dInputLine").hidden = true;
+    }
+    $("dNarrative").textContent = s.narrative;
+    $("dRepr").textContent = s.representation;
+    var ul = $("dModules");
+    ul.innerHTML = "";
+    s.modules.forEach(function (m) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = m.url; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = m.label;
+      li.appendChild(a);
+      var f = document.createElement("span");
+      f.className = "file"; f.textContent = m.file;
+      li.appendChild(f);
+      ul.appendChild(li);
+    });
+    $("dLoop").innerHTML = LOOP_NOTES[s.step] || "";
+    $("counter").textContent = (idx + 1) + " / " + data.steps.length;
+    renderFlow($("flowMain"), FLOW_MAIN, s.step);
+    renderFlow($("flowBranch"), FLOW_BRANCH, -1);
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    $("playBtn").innerHTML = "&#9654; Play";
+  }
+  function play() {
+    if (timer) { stop(); return; }
+    if (idx >= data.steps.length - 1) go(0);
+    $("playBtn").innerHTML = "&#10074;&#10074; Pause";
+    timer = setInterval(function () {
+      if (idx >= data.steps.length - 1) { stop(); return; }
+      go(idx + 1);
+    }, 4500);
+  }
+
+  $("prevBtn").addEventListener("click", function () { stop(); go(idx - 1); });
+  $("nextBtn").addEventListener("click", function () { stop(); go(idx + 1); });
+  $("playBtn").addEventListener("click", play);
+  userInput.addEventListener("input", function () { if (idx === 0) go(0); });
+  document.addEventListener("keydown", function (e) {
+    if (document.activeElement === userInput) return;
+    if (e.key === "ArrowRight") { stop(); go(idx + 1); }
+    if (e.key === "ArrowLeft") { stop(); go(idx - 1); }
+    if (e.key === " ") { e.preventDefault(); play(); }
+  });
+
+  fetch("diagrams/dsh-superagent-trace-steps.json")
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) {
+      data = d;
+      document.title = d.title + " \u00b7 Agent Harness Anatomy";
+      $("pageTitle").textContent = d.title;
+      $("pageSub").textContent = "Follow one maintainer comment through dsh-superagent: the GitHub Source polls it into a Trigger, Intake stores it once, a pass starts an admission Eval, the gate classifies it and the assessor Session judges it, accept mints a Mandate and a Ticket in one transaction, a worker Session does the work in its own directory, and the merged pull request - not the worker's report - is what ends the Ticket. " +
+        "Each step shows the representation dsh-superagent uses at that boundary and the source modules involved. " + d.note;
+      $("sha").textContent = "deepseek-ai/dsh-superagent-prototype @ " + d.sha.slice(0, 12) + "\u2026 (the repository's only commit)";
+      if (!userInput.value) userInput.value = d.example_input;
+      buildRail();
+      go(0);
+    })
+    .catch(function () {
+      $("pageSub").textContent = "Could not load the trace data (diagrams/dsh-superagent-trace-steps.json).";
+    });
+})();
+</script>
+<script src="../assets/storybook.js" data-kind="trace" data-after=".topnav"></script>
+</body>
+</html>

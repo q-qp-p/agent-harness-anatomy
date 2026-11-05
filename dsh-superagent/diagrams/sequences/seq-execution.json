@@ -1,0 +1,60 @@
+{
+ "title": "Execution - a worker Session runs the Ticket",
+ "subtitle": "startAssignment spawns worker-<ticketId> in its own directory; Reports stay on the Ticket; the result replies to the origin",
+ "participants": [
+  "Engine",
+  "DshExecutor",
+  "Worker (dsh)",
+  "Store",
+  "Outbox",
+  "Origin chat"
+ ],
+ "messages": [
+  {
+   "from": 0,
+   "to": 1,
+   "label": "startAssignment(assignment)"
+  },
+  {
+   "from": 1,
+   "to": 1,
+   "label": "ensure worker-<ticketId>, own directory"
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "label": "work prompt + Mandate scope"
+  },
+  {
+   "from": 2,
+   "to": 2,
+   "label": "foreground shell backgrounds after 5s"
+  },
+  {
+   "from": 2,
+   "to": 0,
+   "label": "report(progress)"
+  },
+  {
+   "from": 0,
+   "to": 3,
+   "label": "record Report on the Ticket"
+  },
+  {
+   "from": 2,
+   "to": 0,
+   "label": "report(ready): result + evidence"
+  },
+  {
+   "from": 0,
+   "to": 4,
+   "label": "enqueue result reply"
+  },
+  {
+   "from": 4,
+   "to": 5,
+   "label": "result reply to origin conversation",
+   "dashed": true
+  }
+ ]
+}

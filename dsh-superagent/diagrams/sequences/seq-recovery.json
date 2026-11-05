@@ -1,0 +1,67 @@
+{
+ "title": "Recovery - restart reconciles what was running",
+ "subtitle": "lock and open the Store, resume interrupted Assignments with a note, requeue expired Evals, keep the receipts",
+ "participants": [
+  "Host",
+  "Runtime",
+  "Store",
+  "Engine",
+  "DshExecutor"
+ ],
+ "messages": [
+  {
+   "from": 0,
+   "to": 1,
+   "label": "process restart"
+  },
+  {
+   "from": 1,
+   "to": 1,
+   "label": "lock stateDir; open Store (WAL)"
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "label": "load Tickets, Assignments, receipts"
+  },
+  {
+   "from": 2,
+   "to": 1,
+   "label": "interrupted Assignments found",
+   "dashed": true
+  },
+  {
+   "from": 1,
+   "to": 3,
+   "label": "resume: reconcile oldest first"
+  },
+  {
+   "from": 3,
+   "to": 4,
+   "label": "resume(interrupted assignment)"
+  },
+  {
+   "from": 4,
+   "to": 4,
+   "label": "restart + note"
+  },
+  {
+   "note": "settled",
+   "span": [
+    1,
+    4
+   ],
+   "text": "settled states - waiting / ready / blocked / failed, nothing delivered - get no note"
+  },
+  {
+   "from": 3,
+   "to": 3,
+   "label": "expired Eval: requeue, fresh deadline"
+  },
+  {
+   "from": 1,
+   "to": 1,
+   "label": "outbox receipts retained; resend pending"
+  }
+ ]
+}
