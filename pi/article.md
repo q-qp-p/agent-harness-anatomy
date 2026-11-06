@@ -72,7 +72,7 @@ hitting Ctrl+C (`AbortController`).[^11] pi trusts the model's stop behavior
 the way a REPL trusts EOF.
 
 That's a deliberate trust model, not an oversight — and it's the kind of
-decision to steal or reject consciously. Anyone who wants a cap can add one
+decision to adopt or reject consciously. Anyone who wants a cap can add one
 in a `finishTurn` hook without forking the loop, so the core never has to
 know what "too many iterations" means for your deployment.[^11] The price is
 real: a misbehaving model burns tokens until the user aborts. pi's bet is
@@ -382,7 +382,7 @@ is minimal while the default install is somewhat broader.[^50]
 
 Read the omissions as the other half of the thesis: every "missing" feature
 is a decision to keep the core's surface area small and let the extension
-layer — or the model itself — carry the weight. Steal the pattern when your
+layer — or the model itself — carry the weight. Adopt the pattern when your
 harness needs to stay hackable; reject it when your users need guardrails
 out of the box.
 

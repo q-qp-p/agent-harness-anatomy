@@ -253,7 +253,7 @@ configuration — tool executors, policy construction, the approval
 callback, the checkpoint hook — plus the bridge. The CLI host is the same
 loop with opposite policy (`"*": {autoApprove: true}`) and no webview at
 all.[^2][^4] If you're building a harness, that's the design decision to
-steal: *the loop is the product; every interface is a host*, and the price
+adopt: *the loop is the product; every interface is a host*, and the price
 is a real distributed-systems problem (224 RPCs, convergent transcripts)
 where a terminal harness has a function call.
 

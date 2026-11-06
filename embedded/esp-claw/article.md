@@ -560,7 +560,7 @@ the model can see rather than asking a human to confirm what it does —
 deserves a hearing in desktop harnesses that currently gate everything
 through approve/deny dialogs. And failures-as-memory (persist the failure
 trace as a note, not just a log line) is a small idea any harness can
-steal.
+adopt.
 
 **What harness design teaches embedded.** The capability registry's
 eligibility chain shows how to make "which tools exist right now" a
